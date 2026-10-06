@@ -37,9 +37,12 @@ type Msg = {
 type TxMode = "direct" | "button";
 
 type Presence = { count: number; users: { id: string; user: string }[] };
+/** Quién tiene el canal y hasta cuándo (hora local). */
+type Floor = { from: string; user: string; until: number };
 
 const CHANNELS = [1, 2, 3, 4, 5, 6];
-const FEED_MAX = 20;
+// Del canal se ve solo lo último que llegó: lo nuevo reemplaza a lo anterior.
+const FEED_MAX = 1;
 const SEND_WPM = 13;
 const MAX_LEN = 120;
 const CALLSIGN_KEY = "morseo:callsign";
@@ -48,11 +51,19 @@ const TX_MODE_KEY = "morseo:txmode";
 // letra abre una entrada nueva en la lista.
 const TX_IDLE_MS = 3000;
 const LED_DOT = { "--led": "var(--dot)" } as CSSProperties;
-const LED_DASH = { "--led": "var(--dash)" } as CSSProperties;
+// En los avisos de canal ocupado, un nombre más largo que esto se corta con «…».
+const NAME_MAX = 16;
+
+/** Corta un nombre largo con «…», sin partir emojis ni letras compuestas. */
+function shortName(name: string): string {
+  const chars = Array.from(name);
+  return chars.length > NAME_MAX ? chars.slice(0, NAME_MAX - 1).join("").trimEnd() + "…" : name;
+}
 
 /**
- * Suma un mensaje a la lista. Una letra en directo se agrega a la entrada de
- * su transmisión («S» → «SO» → «SOS»); lo demás entra arriba como nuevo.
+ * Pone el mensaje que llega. Una letra en directo se agrega a la entrada de
+ * su transmisión («S» → «SO» → «SOS»); lo demás entra como nuevo y, con
+ * FEED_MAX, saca al anterior.
  */
 function mergeMsg(list: Msg[], msg: Msg): Msg[] {
   if (msg.tx) {
@@ -107,8 +118,16 @@ export default function RadioApp() {
   const [queue, setQueue] = useState<Msg[]>([]);
   const [text, setText] = useState("");
   const [txMode, setTxMode] = useState<TxMode>("direct");
-  // Lo que llevas transmitido en directo (se borra tras la pausa de cierre).
-  const [liveText, setLiveText] = useState("");
+  // Turno de palabra: quién tiene el canal (lo avisa el servidor) y, si
+  // agotaste tu turno, hasta cuándo descansas.
+  const [floor, setFloor] = useState<Floor | null>(null);
+  const [restUntil, setRestUntil] = useState(0);
+  const busy = !!floor && floor.from !== clientId;
+  const resting = restUntil > 0;
+  // En directo cada letra sale al canal: si no es tu turno, la tecla no teclea.
+  const keyLocked = txMode === "direct" && (busy || resting);
+  const holder = busy && floor ? shortName(floor.user) : "";
+  const sendingRef = useRef(false);
   // Onda de luces en el árbol cada vez que se pasa a él.
   const [sweep, setSweep] = useState(0);
   // ¿El mensaje se armó con la tecla? Entonces ya lo oíste al teclearlo.
@@ -121,6 +140,7 @@ export default function RadioApp() {
 
   const keyer = useKeyer({
     player,
+    enabled: !keyLocked,
     onLetter: (letter, code) => {
       if (!letter) return;
       if (txMode === "direct") {
@@ -138,6 +158,18 @@ export default function RadioApp() {
       setText((v) => (v && !v.endsWith(" ") ? v + " " : v));
     },
   });
+
+  // El turno vence solo, aunque no llegue el aviso del servidor.
+  useEffect(() => {
+    if (!floor) return;
+    const tm = setTimeout(() => setFloor(null), Math.max(0, floor.until - Date.now()));
+    return () => clearTimeout(tm);
+  }, [floor]);
+  useEffect(() => {
+    if (!restUntil) return;
+    const tm = setTimeout(() => setRestUntil(0), Math.max(0, restUntil - Date.now()));
+    return () => clearTimeout(tm);
+  }, [restUntil]);
 
   // La forma de transmitir se recuerda entre visitas.
   useEffect(() => {
@@ -197,8 +229,9 @@ export default function RadioApp() {
     setPresence({ count: 0, users: [] });
     setMessages([]);
     setQueue([]);
+    setFloor(null);
+    setRestUntil(0);
     txRef.current = null;
-    setLiveText("");
     if (!clientId || !callsign) return;
     const es = new EventSource(
       `/api/broadcast/stream?band=morse&channel=${channel}&user=${encodeURIComponent(
@@ -213,6 +246,9 @@ export default function RadioApp() {
         message?: Msg;
         count?: number;
         users?: { id: string; user: string }[];
+        from?: string | null;
+        user?: string | null;
+        ms?: number;
       };
       try {
         d = JSON.parse(e.data);
@@ -223,6 +259,8 @@ export default function RadioApp() {
         setLink("open");
       } else if (d.type === "presence") {
         setPresence({ count: d.count ?? 0, users: d.users ?? [] });
+      } else if (d.type === "floor") {
+        setFloor(d.from && d.user && d.ms ? { from: d.from, user: d.user, until: Date.now() + d.ms } : null);
       } else if (d.type === "history" && Array.isArray(d.messages)) {
         setMessages(d.messages.slice(-FEED_MAX).reverse());
       } else if (d.type === "message" && d.message) {
@@ -254,28 +292,33 @@ export default function RadioApp() {
     return () => clearTimeout(tm);
   }, [player.playing, keyer.pressed, keyer.seq, queue, play]);
 
-  // La línea «Transmitiendo» se apaga cuando la transmisión se cierra.
-  useEffect(() => {
-    if (!liveText) return;
-    const tm = setTimeout(() => setLiveText(""), TX_IDLE_MS);
-    return () => clearTimeout(tm);
-  }, [liveText]);
-
-  function post(body: Record<string, unknown>) {
-    return fetch("/api/broadcast/send", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        band: "morse",
-        channel,
-        user: callsign,
-        from: clientId,
-        kind: "morse",
-        ...body,
-      }),
-    }).catch(() => {
+  /** Envía al canal. Devuelve si salió: con el canal ocupado no sale. */
+  async function post(body: Record<string, unknown>): Promise<boolean> {
+    try {
+      const res = await fetch("/api/broadcast/send", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          band: "morse",
+          channel,
+          user: callsign,
+          from: clientId,
+          kind: "morse",
+          ...body,
+        }),
+      });
+      if (res.status === 409) {
+        // Otro tomó el canal primero, o agotaste tu turno.
+        const d = await res.json();
+        if (d.error === "rest") setRestUntil(Date.now() + d.ms);
+        else setFloor({ from: d.from, user: d.user, until: Date.now() + d.ms });
+        return false;
+      }
+      return res.ok;
+    } catch {
       /* sin conexión: el aviso de «sin conexión» ya lo indica */
-    });
+      return false;
+    }
   }
 
   /** En directo: la letra recién tecleada sale ya al canal. */
@@ -285,13 +328,11 @@ export default function RadioApp() {
     let tx = txRef.current;
     if (!tx || now - tx.last > TX_IDLE_MS) {
       tx = { id: newId(), last: now, space: false };
-      setLiveText("");
     }
     const space = tx.space;
     tx.last = now;
     tx.space = false;
     txRef.current = tx;
-    setLiveText((v) => (space ? v + " " : v) + letter);
     post({
       tx: tx.id,
       // Una letra que empieza palabra lleva antes el silencio de palabra.
@@ -304,14 +345,18 @@ export default function RadioApp() {
   async function transmit() {
     const clean = normalize(text).toUpperCase().trim();
     const morse = encode(clean);
-    if (!morse || !clientId) return;
+    if (!morse || !clientId || busy || resting || sendingRef.current) return;
     const keyed = keyedRef.current;
     const wpm = keyed ? Math.min(26, Math.max(5, keyer.wpm())) : SEND_WPM;
+    sendingRef.current = true;
+    const sent = await post({ morse, text: clean, wpm });
+    sendingRef.current = false;
+    // Si el canal estaba ocupado, el mensaje se queda en el campo para después.
+    if (!sent) return;
     keyedRef.current = false;
     setText("");
     // Lo escrito se oye al salir; lo tecleado ya sonó mientras lo armabas.
     if (!keyed) play(morse, { id: "tx", wpm });
-    await post({ morse, text: clean, wpm });
   }
 
   // Enter fuera de los campos transmite lo que armaste con la tecla.
@@ -355,6 +400,8 @@ export default function RadioApp() {
       <div className="mt-4">
         <KeyButton
           keyer={keyer}
+          disabled={keyLocked}
+          notice={keyLocked ? (busy ? r.busyShort : r.restShort) : undefined}
           txOn={txActive}
           code={liveCode}
           letter={liveLetter}
@@ -375,6 +422,8 @@ export default function RadioApp() {
       hand={
         <HandKey
           keyer={keyer}
+          disabled={keyLocked}
+          notice={keyLocked ? (busy ? r.busyShort : r.restShort) : undefined}
           ariaLabel={t.device.keyAria}
           tip={t.tips.key}
           {...t.station.hand}
@@ -395,6 +444,15 @@ export default function RadioApp() {
           </span>
           {connected && <span className="text-muted">{r.presence(presence.count)}</span>}
         </p>
+        {(busy || resting) && (
+          // Con el nombre recortado, el globito lo muestra completo.
+          <Tooltip label={busy && floor && holder !== floor.user ? floor.user : undefined}>
+            <p className="channel-busy" aria-live="polite">
+              <span aria-hidden className="busy-led" />
+              {busy ? r.busy(holder) : r.rest}
+            </p>
+          </Tooltip>
+        )}
         {/* El navegador calla el audio hasta un toque: lo que llega ya pasa por
             la lista y el árbol, y con este toque (o cualquier otro) se oye. */}
         {player.audio.blocked && (
@@ -467,13 +525,6 @@ export default function RadioApp() {
           }))}
         />
         <p className="mt-2 max-w-[52ch] text-[15px] leading-snug text-muted">{r.modeHelp[txMode]}</p>
-        {txMode === "direct" && liveText && (
-          <p className="mt-3 flex items-center gap-2.5 text-[15px]" aria-live="polite">
-            <span aria-hidden className="led-sm" data-on style={LED_DASH} />
-            <span className="text-muted">{r.sending}</span>
-            <span className="font-semibold tracking-[.05em] break-all uppercase">{liveText}</span>
-          </p>
-        )}
       </div>
 
       <div className="mt-6">
@@ -498,8 +549,19 @@ export default function RadioApp() {
             }}
             className={inputClass}
           />
-          <Tooltip label={t.tips.transmit} disabledLabel={text.trim() ? t.tips.noMorse : t.tips.needMessage}>
-            <Button variant="primary" onClick={transmit} disabled={!encode(text)}>
+          <Tooltip
+            label={t.tips.transmit}
+            disabledLabel={
+              busy && floor
+                ? t.tips.busyWait(holder)
+                : resting
+                  ? r.rest
+                  : text.trim()
+                    ? t.tips.noMorse
+                    : t.tips.needMessage
+            }
+          >
+            <Button variant="primary" onClick={transmit} disabled={!encode(text) || busy || resting}>
               <Send />
               {r.send}
             </Button>
@@ -512,7 +574,7 @@ export default function RadioApp() {
         {messages.length === 0 ? (
           <p className="mt-2 max-w-[48ch] text-[15px] leading-snug text-muted">{r.feedEmpty}</p>
         ) : (
-          <ul className="mt-1 max-h-[360px] divide-y divide-line overflow-y-auto pr-1">
+          <ul className="mt-1 divide-y divide-line">
             {messages.map((m) => {
               const mine = m.from === clientId;
               const playingThis = player.playingId === (m.tx ?? m.id);

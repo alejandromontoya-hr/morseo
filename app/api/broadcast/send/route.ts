@@ -1,9 +1,12 @@
 import {
   CB_CHANNELS,
+  FLOOR_IDLE_MS,
   MORSE_CHANNELS,
   publish,
+  takeFloor,
   type Band,
 } from "@/lib/broadcast-hub";
+import { morseMs } from "@/lib/morse";
 
 export const runtime = "nodejs";
 
@@ -56,6 +59,12 @@ export async function POST(req: Request) {
   const wpm = Math.min(30, Math.max(4, Math.round(Number(body?.wpm) || 12)));
   // Id de la transmisión en directo a la que pertenece esta letra, si aplica.
   const tx = typeof body?.tx === "string" && body.tx ? body.tx.slice(0, 64) : undefined;
+
+  // Turno de palabra: si otro tiene el canal, esto no sale. Un mensaje lo toma
+  // mientras suena; una letra en directo, mientras suena y un rato después.
+  const hold = morseMs(morse, wpm) + (tx ? FLOOR_IDLE_MS : 500);
+  const refusal = takeFloor(band, channel, from, user, hold);
+  if (refusal) return Response.json(refusal, { status: 409 });
 
   const msg = {
     id: crypto.randomUUID(),

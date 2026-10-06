@@ -53,6 +53,8 @@
   --dash: var(--graphite);
   /* Borde fino para que el punto lima no se pierda sobre blanco */
   --dot-ring: rgb(35 35 37 / 0.38);
+  /* Canal ocupado: el único rojo de la app, como el LED de «al aire» */
+  --busy: #e5484d;
 }
 
 .dark {
@@ -75,6 +77,7 @@
   --led-ring: rgb(244 244 246 / 0.22);
   --dash: var(--mist);
   --dot-ring: transparent;
+  --busy: #ff6369;
 }
 
 /* Sobre la placa grafito la raya enciende blanca y los LED apagados son oscuros */
@@ -433,6 +436,31 @@
   100% {
     opacity: 0;
     transform: scale(1.15);
+  }
+}
+
+/* Canal ocupado: LED rojo que late mientras otro transmite */
+.channel-busy {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.busy-led {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--busy);
+  box-shadow:
+    0 0 0 3px color-mix(in oklab, var(--busy) 20%, transparent),
+    0 0 10px 1px color-mix(in oklab, var(--busy) 65%, transparent);
+  animation: busy-led 1.4s ease-in-out infinite;
+}
+@keyframes busy-led {
+  50% {
+    opacity: 0.7;
   }
 }
 
