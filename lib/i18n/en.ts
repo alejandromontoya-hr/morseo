@@ -48,6 +48,22 @@ const en = {
     received: "RECEIVED",
     // What the emblem's little guy says in Morse now and then.
     emblemWords: ["HI", "SOS", "OK", "BYE"],
+    // Phone: the little guy's bubble next to the key, when nothing is playing.
+    dockIdle: {
+      translate: "Tap to key",
+      learn: "Which one was it?",
+      radio: "Key it on air",
+    },
+    treeShort: "Tree",
+    treeHint: "Tap a letter to hear its path",
+    close: "Close",
+    backToKey: "Back to the key",
+    more: "More options",
+    settings: "Settings",
+    theme: "Theme",
+    themeLight: "Light",
+    themeDark: "Dark",
+    openSource: "Morseo is open source",
     footer: "LISTEN & CONNECT",
     links: "About Morseo",
     linkedin: "Contact me on LinkedIn",
@@ -138,6 +154,7 @@ const en = {
     start: "Play a letter",
     replay: "Hear it again",
     next: "Next letter",
+    whichOne: "Which letter played? Tap it on the tree or key it.",
     howTo:
       "Tap the letter on the tree, press it on your keyboard, or key it with the space bar.",
     howToTouch: "Tap the letter on the tree, or key it with the key.",
@@ -191,6 +208,8 @@ const en = {
     presence: (n: number) =>
       n <= 1 ? "Only you on this channel" : `${n} on this channel`,
     feedLabel: "Last message on the channel",
+    channelSheet: "Channel and name",
+    changeChannel: "Change channel or name",
     feedEmpty: "Nothing yet. Open this page in another tab or device to try it.",
     busy: (user: string) => `Channel busy: ${user}`,
     busyShort: "Channel busy",

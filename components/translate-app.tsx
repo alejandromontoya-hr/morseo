@@ -10,7 +10,7 @@ import { useKeyer } from "@/lib/use-keyer";
 import { useMorsePlayer } from "@/lib/use-morse-player";
 import { Board } from "@/components/device/board";
 import { HandKey } from "@/components/device/hand-key";
-import { KeyButton } from "@/components/device/key-button";
+import { DockKey, KeyButton } from "@/components/device/key-button";
 import { MorseTree } from "@/components/device/morse-tree";
 import { DeviceLayout, FieldLabel, type DeviceView } from "@/components/device-layout";
 import { MorseGlyphs } from "@/components/morse-glyphs";
@@ -175,6 +175,17 @@ export default function TranslateApp({ about }: { about?: ReactNode }) {
         setView(v);
       }}
       monitor={<SignalMonitor morse={morse} wpm={SPEEDS[speed]} active={player.playing} />}
+      dockKey={<DockKey keyer={keyer} ariaLabel={t.device.keyAria} tip={t.tips.key} />}
+      dockReadout={
+        notLetter ? (
+          t.device.notALetter
+        ) : liveCode ? (
+          <>
+            <MorseGlyphs morse={liveCode} size={8} />
+            {liveLetter && <b>{liveLetter}</b>}
+          </>
+        ) : undefined
+      }
     >
       <FieldLabel htmlFor="message">{tr.messageLabel}</FieldLabel>
       <textarea
@@ -195,7 +206,7 @@ export default function TranslateApp({ about }: { about?: ReactNode }) {
       />
       <div className="station-input-meta"><span>{t.station.editorHint}</span><span>{text.length} / {MAX_LEN}</span></div>
 
-      <div className="mt-6 mb-2 flex items-center justify-between gap-3">
+      <div className="translate-morse-head mt-6 mb-2 flex items-center justify-between gap-3">
         <span className="text-[15px] font-semibold">{tr.morseLabel}</span>
         <Tooltip label={t.tips.copy} disabledLabel={whyNoMorse}>
           <Button
@@ -242,7 +253,7 @@ export default function TranslateApp({ about }: { about?: ReactNode }) {
         </Tooltip>
       </div>
 
-      <div className="mt-8 max-w-[380px]">
+      <div className="translate-speed mt-8 max-w-[380px]">
         <FieldLabel>{tr.speed}</FieldLabel>
         <Segmented
           value={speed}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { Dices, RotateCcw, Send, Volume2 } from "lucide-react";
+import { ChevronDown, Dices, RotateCcw, Send, Volume2 } from "lucide-react";
 
 import { randomCallsign } from "@/lib/callsign";
 import { isOnControl, isTyping } from "@/lib/dom";
@@ -10,14 +10,16 @@ import { useI18n } from "@/lib/i18n/context";
 import type { Locale } from "@/lib/i18n/config";
 import { useKeyer } from "@/lib/use-keyer";
 import { useMorsePlayer } from "@/lib/use-morse-player";
+import { useIsMobile } from "@/lib/use-media";
 import { Board, StatusLed } from "@/components/device/board";
 import { HandKey } from "@/components/device/hand-key";
-import { KeyButton } from "@/components/device/key-button";
+import { DockKey, KeyButton } from "@/components/device/key-button";
 import { MorseTree } from "@/components/device/morse-tree";
 import { DeviceLayout, FieldLabel, type DeviceView } from "@/components/device-layout";
 import { MorseGlyphs } from "@/components/morse-glyphs";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { Sheet } from "@/components/ui/sheet";
 import { Tooltip } from "@/components/ui/tooltip";
 import { OnAirIcon } from "@/components/on-air-icon";
 
@@ -118,6 +120,12 @@ export default function RadioApp({ about }: { about?: ReactNode }) {
   const [queue, setQueue] = useState<Msg[]>([]);
   const [text, setText] = useState("");
   const [txMode, setTxMode] = useState<TxMode>("direct");
+  // En el celular no se elige: lo escrito sale con Transmitir y lo tecleado,
+  // letra a letra (como «Directo»).
+  const isMobile = useIsMobile();
+  const mode: TxMode = isMobile ? "direct" : txMode;
+  // Celular: la hoja para cambiar de canal o de nombre.
+  const [setupOpen, setSetupOpen] = useState(false);
   // Turno de palabra: quién tiene el canal (lo avisa el servidor) y, si
   // agotaste tu turno, hasta cuándo descansas.
   const [floor, setFloor] = useState<Floor | null>(null);
@@ -125,7 +133,7 @@ export default function RadioApp({ about }: { about?: ReactNode }) {
   const busy = !!floor && floor.from !== clientId;
   const resting = restUntil > 0;
   // En directo cada letra sale al canal: si no es tu turno, la tecla no teclea.
-  const keyLocked = txMode === "direct" && (busy || resting);
+  const keyLocked = mode === "direct" && (busy || resting);
   const holder = busy && floor ? shortName(floor.user) : "";
   const sendingRef = useRef(false);
   // Onda de luces en el árbol cada vez que se pasa a él.
@@ -143,7 +151,7 @@ export default function RadioApp({ about }: { about?: ReactNode }) {
     enabled: !keyLocked,
     onLetter: (letter, code) => {
       if (!letter) return;
-      if (txMode === "direct") {
+      if (mode === "direct") {
         sendLetter(letter, code);
         return;
       }
@@ -151,7 +159,7 @@ export default function RadioApp({ about }: { about?: ReactNode }) {
       setText((v) => (v + letter).slice(0, MAX_LEN));
     },
     onWordGap: () => {
-      if (txMode === "direct") {
+      if (mode === "direct") {
         if (txRef.current) txRef.current.space = true;
         return;
       }
@@ -363,7 +371,7 @@ export default function RadioApp({ about }: { about?: ReactNode }) {
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key !== "Enter" || isTyping() || isOnControl()) return;
-      if (txMode !== "button" || !text.trim()) return;
+      if (mode !== "button" || !text.trim()) return;
       e.preventDefault();
       transmit();
     };
@@ -417,8 +425,125 @@ export default function RadioApp({ about }: { about?: ReactNode }) {
     </Board>
   );
 
+  // Canal e indicativo: en la tarjeta y, en el celular, en su hoja.
+  const setup = (id: string) => (
+    <>
+      <div>
+        <FieldLabel>{r.channelLabel}</FieldLabel>
+        <Segmented
+          value={channel}
+          onChange={setChannel}
+          ariaLabel={r.channelLabel}
+          options={CHANNELS.map((n) => ({
+            value: n,
+            label: String(n),
+            title: r.channels[n - 1],
+          }))}
+        />
+        <p className="mt-2 text-[15px] text-muted">{r.channels[channel - 1]}</p>
+      </div>
+      <div>
+        <FieldLabel htmlFor={`callsign${id}`}>{r.callsignLabel}</FieldLabel>
+        <div className="flex gap-2">
+          <input
+            id={`callsign${id}`}
+            value={callsignInput}
+            maxLength={24}
+            autoComplete="off"
+            spellCheck={false}
+            onChange={(e) => setCallsignInput(e.target.value)}
+            className={inputClass}
+          />
+          <Tooltip label={t.tips.newCallsign}>
+            <Button
+              size="icon"
+              className="size-11"
+              aria-label={r.newCallsign}
+              onClick={() => setCallsignInput(randomCallsign())}
+            >
+              <Dices />
+            </Button>
+          </Tooltip>
+        </div>
+      </div>
+    </>
+  );
+
+  // Escribir y Transmitir: en la tarjeta y, en el celular, en el panel de abajo.
+  const compose = (id: string) => (
+    <div className="flex gap-2">
+      <input
+        id={id}
+        aria-label={r.messageLabel}
+        value={text}
+        maxLength={MAX_LEN}
+        autoComplete="off"
+        placeholder={mode === "direct" ? r.placeholderDirect : r.placeholder}
+        onChange={(e) => {
+          // Si lo reescribes a mano, ya no es un mensaje hecho con la tecla.
+          keyedRef.current = false;
+          setText(e.target.value);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            transmit();
+          }
+        }}
+        className={inputClass}
+      />
+      <Tooltip
+        label={t.tips.transmit}
+        disabledLabel={
+          busy && floor
+            ? t.tips.busyWait(holder)
+            : resting
+              ? r.rest
+              : text.trim()
+                ? t.tips.noMorse
+                : t.tips.needMessage
+        }
+      >
+        <Button variant="primary" onClick={transmit} disabled={!encode(text) || busy || resting}>
+          <Send />
+          {r.send}
+        </Button>
+      </Tooltip>
+    </div>
+  );
+
+  // Celular: el canal en una ficha; tocarla abre la hoja con canal e indicativo.
+  const mobileTop = (
+    <>
+      <button type="button" className="radio-channel-chip" aria-label={r.changeChannel} onClick={() => setSetupOpen(true)}>
+        <OnAirIcon state={link} />
+        <span>
+          <b>{r.channelLabel} {channel} · {callsign}</b>
+          <small>{r.channels[channel - 1]}</small>
+        </span>
+        <ChevronDown aria-hidden />
+      </button>
+      <Sheet open={setupOpen} onClose={() => setSetupOpen(false)} title={r.channelSheet} closeLabel={t.station.close}>
+        <div className="grid gap-6 pb-2">{setup("-sheet")}</div>
+      </Sheet>
+    </>
+  );
+
   return (
     <DeviceLayout mode="radio" title={r.title} lead={r.lead} board={board} about={about}
+      mobileTop={mobileTop}
+      dockComposer={compose("radio-message-dock")}
+      dockKey={<DockKey keyer={keyer} disabled={keyLocked} ariaLabel={t.device.keyAria} tip={t.tips.key} />}
+      dockReadout={
+        keyLocked ? (
+          busy ? r.busyShort : r.restShort
+        ) : liveCode ? (
+          <>
+            <MorseGlyphs morse={liveCode} size={8} />
+            {liveLetter && <b>{liveLetter}</b>}
+          </>
+        ) : undefined
+      }
       hand={
         <HandKey
           keyer={keyer}
@@ -470,48 +595,9 @@ export default function RadioApp({ about }: { about?: ReactNode }) {
         </p>
       )}
 
-      <div className="mt-8 grid gap-6 sm:grid-cols-2">
-        <div>
-          <FieldLabel>{r.channelLabel}</FieldLabel>
-          <Segmented
-            value={channel}
-            onChange={setChannel}
-            ariaLabel={r.channelLabel}
-            options={CHANNELS.map((n) => ({
-              value: n,
-              label: String(n),
-              title: r.channels[n - 1],
-            }))}
-          />
-          <p className="mt-2 text-[15px] text-muted">{r.channels[channel - 1]}</p>
-        </div>
-        <div>
-          <FieldLabel htmlFor="callsign">{r.callsignLabel}</FieldLabel>
-          <div className="flex gap-2">
-            <input
-              id="callsign"
-              value={callsignInput}
-              maxLength={24}
-              autoComplete="off"
-              spellCheck={false}
-              onChange={(e) => setCallsignInput(e.target.value)}
-              className={inputClass}
-            />
-            <Tooltip label={t.tips.newCallsign}>
-              <Button
-                size="icon"
-                className="size-11"
-                aria-label={r.newCallsign}
-                onClick={() => setCallsignInput(randomCallsign())}
-              >
-                <Dices />
-              </Button>
-            </Tooltip>
-          </div>
-        </div>
-      </div>
+      <div className="radio-setup mt-8 grid gap-6 sm:grid-cols-2">{setup("")}</div>
 
-      <div className="mt-6">
+      <div className="radio-mode mt-6">
         <FieldLabel>{r.modeLabel}</FieldLabel>
         <Segmented
           value={txMode}
@@ -527,46 +613,9 @@ export default function RadioApp({ about }: { about?: ReactNode }) {
         <p className="mt-2 max-w-[52ch] text-[15px] leading-snug text-muted">{r.modeHelp[txMode]}</p>
       </div>
 
-      <div className="mt-6">
+      <div className="radio-compose mt-6">
         <FieldLabel htmlFor="radio-message">{r.messageLabel}</FieldLabel>
-        <div className="flex gap-2">
-          <input
-            id="radio-message"
-            value={text}
-            maxLength={MAX_LEN}
-            autoComplete="off"
-            placeholder={txMode === "direct" ? r.placeholderDirect : r.placeholder}
-            onChange={(e) => {
-              // Si lo reescribes a mano, ya no es un mensaje hecho con la tecla.
-              keyedRef.current = false;
-              setText(e.target.value);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                transmit();
-              }
-            }}
-            className={inputClass}
-          />
-          <Tooltip
-            label={t.tips.transmit}
-            disabledLabel={
-              busy && floor
-                ? t.tips.busyWait(holder)
-                : resting
-                  ? r.rest
-                  : text.trim()
-                    ? t.tips.noMorse
-                    : t.tips.needMessage
-            }
-          >
-            <Button variant="primary" onClick={transmit} disabled={!encode(text) || busy || resting}>
-              <Send />
-              {r.send}
-            </Button>
-          </Tooltip>
-        </div>
+        {compose("radio-message")}
       </div>
 
       <section className="mt-9">

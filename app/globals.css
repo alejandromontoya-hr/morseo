@@ -715,6 +715,175 @@
   .station-device .board { padding-left: 12px; padding-right: 12px; }
 }
 
+/* ───────────────────────────── Hojas ───────────────────────────── */
+
+/* Suben desde abajo en el celular: el árbol, los ajustes, el canal */
+.sheet-layer { position: fixed; inset: 0; z-index: 80; }
+.sheet-scrim { position: absolute; inset: 0; border: 0; background: rgb(35 35 37 / 0.42); animation: sheet-fade 0.2s ease; }
+.sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; box-sizing: border-box;
+  max-height: calc(100dvh - 40px); overflow-y: auto; overscroll-behavior: contain;
+  padding: 10px 16px calc(20px + env(safe-area-inset-bottom));
+  border-radius: 28px 28px 0 0; background: var(--desk-raised); color: var(--text);
+  box-shadow: 0 -20px 40px -20px rgb(0 0 0 / 0.35);
+  animation: sheet-up 0.28s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.sheet-dark { background: var(--board); color: var(--mist); }
+.sheet-grip { display: block; width: 40px; height: 4px; margin: 0 auto; border-radius: 2px; background: var(--line); }
+.sheet-dark .sheet-grip { background: rgb(244 244 246 / 0.3); }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 10px 0 14px; }
+.sheet-head h2 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+.sheet-head p { margin-top: 3px; font-size: 12px; color: var(--muted); }
+.sheet-dark .sheet-head p { color: rgb(244 244 246 / 0.62); }
+.sheet-close { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--surface); color: var(--text); }
+.sheet-dark .sheet-close { background: rgb(255 255 255 / 0.08); color: var(--mist); }
+.sheet-close svg { width: 20px; height: 20px; }
+@keyframes sheet-up { from { transform: translateY(100%); } }
+@keyframes sheet-fade { from { opacity: 0; } }
+/* El árbol en su hoja: la placa ya es la hoja, sin marco ni agujero de argolla */
+.sheet-tree .board { padding: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.sheet-tree .board > .board-hole,
+.sheet-tree .board > .board-hole + div { display: none; }
+/* Ajustes */
+.settings-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; }
+.settings-row > span { font-size: 15px; font-weight: 600; }
+.settings-theme { width: 190px; }
+.settings-theme button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.settings-theme svg { width: 15px; height: 15px; flex: none; }
+.settings-links { margin-top: 6px; padding-top: 16px; border-top: 1px solid var(--line); }
+.settings-links > span { font-size: 13px; font-weight: 400; color: var(--muted); }
+.settings-links > div { display: flex; gap: 8px; }
+.settings-links a { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--surface); color: var(--text); }
+.settings-links svg { width: 19px; height: 19px; }
+
+/* ──────────────── Celular: la herramienta en una pantalla ──────────────── */
+
+/* Solo existen en el celular */
+.station-dock,
+.station-mobile-top,
+.station-back,
+.station-more { display: none; }
+
+@media (max-width: 760px) {
+  /* Arriba solo el logo y «⋯»: idioma, tema y enlaces van en Ajustes */
+  .station-preferences { display: none; }
+  .station-more { display: grid; place-items: center; flex: none; width: 44px; height: 44px; margin-left: auto; border-radius: 50%; background: var(--desk-raised); color: var(--text); }
+  .station-more svg { width: 20px; height: 20px; }
+
+  /* El final de la página deja libre el alto del panel de abajo */
+  .station-main { padding-top: 8px; padding-bottom: calc(var(--dock-h, 104px) + 20px); }
+
+  /* Encabezado compacto: el lema y el título (lo que lee Google), nada más */
+  .station-heading { display: block; margin-bottom: 14px; }
+  .station-heading h1 { font-size: 25px; line-height: 1.15; letter-spacing: -0.03em; }
+  .station-eyebrow { margin-bottom: 4px; font-size: 13px; }
+  .station-lead,
+  .station-heading .station-emblem,
+  .station-toolbar,
+  .station-device-hint,
+  .station-mobile-action { display: none; }
+
+  .station-mobile-top { display: grid; gap: 10px; margin-bottom: 12px; }
+  /* Que nada de arriba ensanche la página más allá de la pantalla */
+  .station-mobile-top > * { min-width: 0; }
+  .station-monitor { margin-bottom: 12px; padding: 9px 14px 2px; }
+  .station-monitor svg { height: 34px; }
+  .station-workspace { gap: 12px; }
+  .station-controls { padding: 16px; }
+  .station-message { height: 88px; min-height: 0; padding: 12px 14px; font-size: 20px; }
+  /* «Lenta, Media, Rápida» se entienden solas: el rótulo se va y la fila sube */
+  .translate-speed { margin-top: 16px; }
+  .translate-speed > label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .station-input-meta { padding-top: 6px; }
+  .station-morse-output { min-height: 40px; padding: 4px 0; }
+  .translate-morse-head { margin-top: 14px; }
+  /* Traducir y Al aire: el aparato no va aquí, se abre en una hoja desde «Árbol» */
+  .station-page[data-hand] .station-side { display: none; }
+  /* Aprender: el árbol se queda, pero el pulsador es el del panel de abajo */
+  .station-page[data-mode="learn"] .station-device .board > :last-child { display: none; }
+  .station-page[data-mode="learn"] .station-device .board { padding-bottom: 12px; }
+
+  /* El panel de abajo: el muñeco, el pulsador y un botón; la cápsula de páginas flota encima */
+  .station-dock {
+    display: block; position: fixed; left: 0; right: 0; bottom: 0; z-index: 35;
+    padding: 10px 14px calc(var(--nav-h, 64px) + 28px + env(safe-area-inset-bottom));
+    border-radius: 28px 28px 0 0; background: var(--desk-raised);
+    box-shadow: 0 -12px 30px -18px rgb(35 35 37 / 0.35);
+  }
+  .dark .station-dock { box-shadow: 0 0 0 1px var(--line), 0 -12px 30px -18px rgb(0 0 0 / 0.6); }
+  .station-dock-tools { display: grid; gap: 6px; max-height: 300px; padding-bottom: 4px; overflow: hidden; transition: max-height 0.25s ease, opacity 0.2s ease; }
+  .station-dock[data-collapsed] .station-dock-tools { max-height: 0; opacity: 0; }
+  .station-dock-row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 16px; min-height: 92px; }
+  /* Aro más delgado que en la tarjeta: cabe entero en su fila, lejos de la cápsula */
+  .station-dock .pulsador { width: 72px; height: 72px; box-shadow: 0 0 0 6px var(--p-gap), 0 0 0 7px var(--p-ring); }
+  .station-dock .pulsador[data-pressed="true"] {
+    box-shadow: 0 0 0 6px var(--p-gap), 0 0 0 7px var(--lime), 0 0 18px 4px color-mix(in oklab, var(--lime) 45%, transparent);
+  }
+  .station-dock .pulsador svg { width: 28px; height: 28px; }
+  .station-dock-action { justify-self: end; }
+  .station-dock-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text); font-size: 11px; font-weight: 600; }
+  .station-dock-btn > span { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--surface); }
+  .station-dock-btn svg { width: 20px; height: 20px; }
+  /* Al aire: escribir va encima del pulsador; Transmitir queda como botón redondo */
+  .station-dock-composer button { width: 48px; height: 48px; padding: 0; gap: 0; font-size: 0; }
+  .station-dock-composer button svg { width: 19px; height: 19px; }
+  .station-dock-composer input { height: 48px; }
+
+  /* El muñeco junto al pulsador; su globo va en la línea de encima, con todo el ancho */
+  .dock-face { justify-self: start; }
+  .dock-face .station-face { position: static; display: block; width: 44px; height: 44px; transform: none; border-radius: 50%; background: var(--lime); }
+  .dock-bubble {
+    justify-self: start; display: flex; align-items: center; gap: 8px;
+    max-width: 100%; min-height: 30px; box-sizing: border-box; margin-left: 4px; padding: 4px 14px;
+    border-radius: 16px 16px 16px 4px; background: var(--surface);
+    color: var(--muted); font-size: 13px; line-height: 1.3; white-space: nowrap; overflow: hidden;
+  }
+  .dock-bubble[data-readout] > span:not(.dock-readout) { display: none !important; }
+  .dock-readout { display: inline-flex; align-items: center; gap: 10px; color: var(--text); font-weight: 600; }
+  .dock-readout b { font: 800 22px/1 var(--font-doto), monospace; font-variation-settings: "ROND" 100; }
+  .dock-bubble .station-say { font-size: 13px; }
+
+  /* Leyendo la guía: el panel se recoge y queda este botón para volver */
+  .station-back {
+    display: flex; align-items: center; gap: 10px; position: fixed; right: 16px; z-index: 36;
+    bottom: calc(var(--dock-h, 88px) + 12px); height: 48px; padding: 0 8px 0 18px;
+    border-radius: 999px; background: var(--ink); color: var(--ink-fg); font-size: 14px; font-weight: 600;
+    box-shadow: 0 10px 24px -10px rgb(35 35 37 / 0.6);
+  }
+  .station-back > span { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--lime); color: var(--graphite); }
+  .station-back svg { width: 17px; height: 17px; }
+
+  /* Aprender: los niveles en fichas y la respuesta encima del árbol */
+  .learn-main { display: none; }
+  .learn-chips { display: flex; gap: 8px; margin: 0 -20px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; }
+  .learn-chips::-webkit-scrollbar { display: none; }
+  .learn-chips button { flex: none; height: 40px; padding: 0 14px; border-radius: 999px; background: var(--desk-raised); color: var(--muted); font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .learn-chips button[aria-pressed="true"] { background: var(--lime); color: var(--graphite); }
+  .learn-ask { padding: 2px 2px 0; color: var(--muted); font-size: 15px; line-height: 1.45; }
+  /* En pantallas muy angostas el botón baja a su propia línea */
+  .learn-result { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px; border-radius: 22px; background: var(--desk-raised); }
+  .learn-result > button { margin-left: auto; }
+  .learn-result-letter { display: grid; place-items: center; flex: none; width: 52px; height: 52px; border-radius: 50%; background: var(--lime); color: var(--graphite); font-size: 28px; font-weight: 700; }
+  .learn-result-title { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 600; line-height: 1.3; }
+  .learn-result-title svg { flex: none; width: 17px; height: 17px; }
+  .learn-result-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 5px; color: var(--muted); font-size: 13px; }
+
+  /* Al aire: el canal en una ficha; ajustarlo y escribir viven en hoja y panel */
+  .radio-setup,
+  .radio-mode,
+  .radio-compose { display: none; }
+  .radio-channel-chip { display: flex; align-items: center; gap: 10px; width: 100%; height: 56px; padding: 0 14px 0 10px; border-radius: 999px; background: var(--desk-raised); color: var(--text); text-align: left; }
+  .radio-channel-chip > span:nth-child(2) { display: flex; flex: 1; flex-direction: column; min-width: 0; line-height: 1.25; }
+  .radio-channel-chip b { overflow: hidden; font-size: 14px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
+  .radio-channel-chip small { color: var(--muted); font-size: 12px; }
+  .radio-channel-chip > svg { flex: none; width: 18px; height: 18px; }
+}
+
+@media (max-width: 370px) {
+  /* La fila de niveles llega al borde: su margen es el de la página (14 px aquí) */
+  .learn-chips { margin: 0 -14px; padding: 0 14px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
