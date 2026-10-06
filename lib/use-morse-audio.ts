@@ -39,6 +39,10 @@ export function useMorseAudio() {
 
   const ctx = useCallback((): AudioContext => {
     if (!audioCtxRef.current) {
+      // iOS trata el tono generado como sonido de fondo y lo calla con el
+      // celular en silencio; como "playback" suena igual que un video.
+      const session = (navigator as { audioSession?: { type: string } }).audioSession;
+      if (session) session.type = "playback";
       const AC =
         window.AudioContext ||
         (window as unknown as { webkitAudioContext: typeof AudioContext })
