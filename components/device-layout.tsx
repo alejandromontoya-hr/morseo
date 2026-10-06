@@ -1,16 +1,40 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { ArrowUp, CircleDot, Network, Radio } from "lucide-react";
+import { useEffect, useRef, type ReactNode } from "react";
+import { CircleDot, Network, Radio } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { useIsMobile } from "@/lib/use-media";
 import { Segmented } from "@/components/ui/segmented";
 import { Sheet } from "@/components/ui/sheet";
 import { Tooltip } from "@/components/ui/tooltip";
 import { StationEmblem } from "@/components/station-emblem";
+import { MorsePad } from "@/components/device/morse-pad";
 import { GitHubMark, LINKEDIN_URL, LinkedInMark, REPO_URL } from "@/components/github-link";
 
 export type DeviceView = "key" | "tree";
+
+/** Celular: el teclado morse, que sale donde sale el teclado del celular. */
+export type PadProps = {
+  open: boolean;
+  /** «Teclado»: vuelve al teclado del celular. */
+  onKeyboard: () => void;
+  /** El pulsador (`PadKey`). */
+  keyEl: ReactNode;
+  /** Lo que se teclea o suena ahora, en el globo del muñeco. */
+  readout?: ReactNode;
+  /** Lo que dice el globo cuando no suena nada. */
+  idle: string;
+  /** A la derecha del pulsador: borrar, o la luz de «al aire». */
+  side?: ReactNode;
+};
+
+/** Celular: el aparato a pantalla completa, con tu mensaje arriba. */
+export type TelegraphProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  /** Arriba, junto a cerrar: el mensaje, lo último que llegó o la pregunta. */
+  top: ReactNode;
+};
 
 /**
  * Página de estación: los controles a la izquierda y, a la derecha, lo que se
@@ -19,10 +43,11 @@ export type DeviceView = "key" | "tree";
  * por el aparato completo. Sin `hand` (Aprender) el aparato está siempre.
  * `about` es la guía de debajo (cómo se usa, alfabeto, preguntas frecuentes).
  *
- * En el celular la herramienta cabe en una pantalla: arriba lo de la página
- * (`mobileTop`) y abajo, fijo junto al pulgar, un panel con el muñeco, el
- * pulsador (`dockKey`) y un botón (`dockAction`, o el que abre el árbol en una
- * hoja). Al bajar a leer la guía, el panel se recoge.
+ * En el celular cada página se ve completa y el pulsador funciona como un
+ * teclado: `pad` lo abre donde sale el teclado del celular, y mientras está
+ * abierto la cápsula de páginas se esconde. Su botón «Árbol» abre `telegraph`,
+ * el aparato a pantalla completa. `mobileBar` es una fila fija encima de la
+ * cápsula (escribir en Al aire, el botón del ejercicio en Aprender).
  */
 export function DeviceLayout({
   title,
@@ -36,10 +61,9 @@ export function DeviceLayout({
   monitor,
   mobileAction,
   mobileTop,
-  dockKey,
-  dockReadout,
-  dockAction,
-  dockComposer,
+  mobileBar,
+  pad,
+  telegraph,
   about,
 }: {
   title: string;
@@ -55,86 +79,55 @@ export function DeviceLayout({
   mobileAction?: ReactNode;
   /** Celular: lo que va arriba de la herramienta. */
   mobileTop?: ReactNode;
-  /** Celular: el pulsador del panel de abajo. */
-  dockKey?: ReactNode;
-  /** Celular: lo que muestra el globo del muñeco mientras suena o se teclea. */
-  dockReadout?: ReactNode;
-  /** Celular: el botón a la derecha del pulsador; sin él, con `hand`, abre el árbol. */
-  dockAction?: ReactNode;
-  /** Celular: la fila para escribir (Al aire), encima del pulsador. */
-  dockComposer?: ReactNode;
+  /** Celular: la fila fija encima de la cápsula de páginas. */
+  mobileBar?: ReactNode;
+  pad?: PadProps;
+  telegraph?: TelegraphProps;
   about?: ReactNode;
 }) {
   const { t } = useI18n();
   const heading = t.station.headings[mode];
   const showTree = !hand || view === "tree";
   const isMobile = useIsMobile();
-  // En el celular, con `hand`, el aparato no va al lado: se abre en una hoja.
+  // En el celular, con `hand`, el aparato no va al lado: se abre a pantalla completa.
   const treeInSheet = isMobile && !!hand;
+  const padOpen = isMobile && !!pad?.open;
+  const hasBar = isMobile && !!mobileBar;
 
-  const [treeOpen, setTreeOpen] = useState(false);
-  const openTree = () => {
-    onViewChange?.("tree");
-    setTreeOpen(true);
-  };
-  const closeTree = useCallback(() => {
-    setTreeOpen(false);
-    onViewChange?.("key");
-  }, [onViewChange]);
+  // Con el teclado morse abierto la cápsula de páginas se esconde, como con el
+  // teclado del celular, y el final de la página deja libre su alto.
+  const padRef = useRef<HTMLElement>(null);
   useEffect(() => {
-    if (!treeInSheet) setTreeOpen(false);
-  }, [treeInSheet]);
-
-  // Leyendo la guía, el panel de abajo se recoge y queda un botón para volver.
-  // Cuenta como leer cuando la herramienta ya salió casi toda de la pantalla:
-  // que la guía asome debajo de una tarjeta corta (Al aire) no basta.
-  const toolRef = useRef<HTMLDivElement>(null);
-  const [reading, setReading] = useState(false);
-  useEffect(() => {
-    if (!isMobile) {
-      setReading(false);
-      return;
-    }
-    let raf = 0;
-    const check = () => {
-      raf = 0;
-      const bottom = toolRef.current?.getBoundingClientRect().bottom ?? Infinity;
-      setReading(!!about && bottom < window.innerHeight * 0.4);
-    };
-    const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(check);
-    };
-    check();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
-  }, [isMobile, about]);
-
-  // El globo del muñeco: lo que dice en morse lo escribe él aquí, y mientras
-  // habla esconde el texto de reposo.
-  const sayRef = useRef<HTMLSpanElement>(null);
-  const idleRef = useRef<HTMLSpanElement>(null);
-  const readout = dockReadout != null && dockReadout !== false;
-
-  // El alto del panel deja espacio al final de la página para que no tape nada.
-  const dockRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const dock = dockRef.current;
-    if (!dock) return;
+    if (!padOpen) return;
     const root = document.documentElement;
-    const measure = () => root.style.setProperty("--dock-h", `${dock.offsetHeight}px`);
+    root.dataset.pad = "open";
+    const el = padRef.current;
+    const measure = () => el && root.style.setProperty("--pad-h", `${el.offsetHeight}px`);
     measure();
     const ro = new ResizeObserver(measure);
-    ro.observe(dock);
+    if (el) ro.observe(el);
     return () => {
       ro.disconnect();
-      root.style.removeProperty("--dock-h");
+      delete root.dataset.pad;
+      root.style.removeProperty("--pad-h");
     };
-  }, []);
+  }, [padOpen]);
+
+  // Lo mismo con la fila fija de abajo: su alto queda libre al final de la página.
+  const barRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = barRef.current;
+    if (!hasBar || !el) return;
+    const root = document.documentElement;
+    const measure = () => root.style.setProperty("--bar-h", `${el.offsetHeight}px`);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      root.style.removeProperty("--bar-h");
+    };
+  }, [hasBar]);
 
   return (
     <div className="station-page" data-mode={mode} data-hand={hand ? "true" : undefined}>
@@ -151,7 +144,7 @@ export function DeviceLayout({
       </div>
       {mobileTop && <div className="station-mobile-top">{mobileTop}</div>}
       {monitor}
-      <div ref={toolRef} className="station-workspace">
+      <div className="station-workspace">
         <section className="station-controls" aria-label={title}>{children}</section>
         {!treeInSheet && (
           <div className="station-side">
@@ -217,53 +210,27 @@ export function DeviceLayout({
         </nav>
       </footer>
 
-      {dockKey && (
-        <div ref={dockRef} className="station-dock" data-collapsed={reading ? "true" : undefined}>
-          <div className="station-dock-tools">
-            {dockComposer && <div className="station-dock-composer">{dockComposer}</div>}
-            {/* El globo, con todo el ancho: lo que suena, lo que él dice o el texto de reposo */}
-            <p className="dock-bubble" aria-hidden data-readout={readout ? "true" : undefined}>
-              {readout && <span className="dock-readout">{dockReadout}</span>}
-              <span ref={idleRef}>{t.station.dockIdle[mode]}</span>
-              <span ref={sayRef} className="station-say" hidden />
-            </p>
-            <div className="station-dock-row">
-              <StationEmblem variant="dock" words={t.station.emblemWords} sayRef={sayRef} idleRef={idleRef} />
-              {dockKey}
-              <div className="station-dock-action">
-                {dockAction ??
-                  (hand && (
-                    <Tooltip label={t.station.view.treeTitle}>
-                      <button type="button" className="station-dock-btn" onClick={openTree}>
-                        <span><Network aria-hidden /></span>
-                        {t.station.treeShort}
-                      </button>
-                    </Tooltip>
-                  ))}
-              </div>
-            </div>
-          </div>
-        </div>
+      {mobileBar && <div ref={barRef} className="station-bar">{mobileBar}</div>}
+      {pad && padOpen && (
+        <MorsePad
+          sectionRef={padRef}
+          keyEl={pad.keyEl}
+          readout={pad.readout}
+          idle={pad.idle}
+          side={pad.side}
+          onKeyboard={pad.onKeyboard}
+          onTree={telegraph ? () => telegraph.onOpenChange(true) : undefined}
+        />
       )}
-      {reading && (
-        <button
-          type="button"
-          className="station-back"
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        >
-          {t.station.backToKey}
-          <span><ArrowUp aria-hidden /></span>
-        </button>
-      )}
-      {treeInSheet && (
+      {telegraph && isMobile && (
         <Sheet
-          open={treeOpen}
-          onClose={closeTree}
+          open={telegraph.open}
+          onClose={() => telegraph.onOpenChange(false)}
           dark
           title={t.station.view.tree}
-          hint={t.station.treeHint}
+          head={<div className="telegraph-top">{telegraph.top}</div>}
           closeLabel={t.station.close}
-          className="sheet-tree"
+          className="sheet-tree sheet-telegraph"
         >
           {board}
         </Sheet>

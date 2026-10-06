@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Check, Copy, Eraser, Play, Square } from "lucide-react";
+import { Check, ChevronDown, Copy, Delete, Eraser, Play, Radio, Square, X } from "lucide-react";
 
 import { isTyping } from "@/lib/dom";
 import { MORSE, REV, encode, normalize } from "@/lib/morse";
@@ -10,7 +10,8 @@ import { useKeyer } from "@/lib/use-keyer";
 import { useMorsePlayer } from "@/lib/use-morse-player";
 import { Board } from "@/components/device/board";
 import { HandKey } from "@/components/device/hand-key";
-import { DockKey, KeyButton } from "@/components/device/key-button";
+import { KeyButton, PadKey } from "@/components/device/key-button";
+import { PadButton } from "@/components/device/morse-pad";
 import { MorseTree } from "@/components/device/morse-tree";
 import { DeviceLayout, FieldLabel, type DeviceView } from "@/components/device-layout";
 import { MorseGlyphs } from "@/components/morse-glyphs";
@@ -41,6 +42,25 @@ export default function TranslateApp({ about }: { about?: ReactNode }) {
   const [copied, setCopied] = useState(false);
   const [notLetter, setNotLetter] = useState(false);
   const flashRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Celular: el teclado morse (en lugar del teclado) y el árbol a pantalla completa.
+  const [padOpen, setPadOpen] = useState(false);
+  const [telegraph, setTelegraph] = useState(false);
+  const messageRef = useRef<HTMLTextAreaElement>(null);
+  const outputRef = useRef<HTMLDivElement>(null);
+
+  // Al abrir el teclado morse la página sube lo justo para que el morse quede
+  // a la vista encima de él, como cuando sale el teclado del celular.
+  useEffect(() => {
+    if (!padOpen) return;
+    const raf = requestAnimationFrame(() => {
+      const pad = document.querySelector<HTMLElement>(".morse-pad");
+      const out = outputRef.current;
+      if (!pad || !out) return;
+      const hidden = out.getBoundingClientRect().bottom - (window.innerHeight - pad.offsetHeight) + 12;
+      if (hidden > 0) window.scrollBy({ top: hidden, behavior: "smooth" });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [padOpen]);
 
   const keyer = useKeyer({
     player,
@@ -114,6 +134,19 @@ export default function TranslateApp({ about }: { about?: ReactNode }) {
     setText("");
   }
 
+  // El teclado morse reemplaza al del celular: al abrirlo se cierra el otro.
+  function openPad() {
+    (document.activeElement as HTMLElement | null)?.blur();
+    setPadOpen(true);
+  }
+
+  // «Teclado»: el foco en el mensaje abre el teclado del celular (y cierra este).
+  function backToKeyboard() {
+    keyer.reset();
+    messageRef.current?.focus();
+    setPadOpen(false);
+  }
+
   async function copy() {
     try {
       await navigator.clipboard.writeText(morse);
@@ -175,53 +208,104 @@ export default function TranslateApp({ about }: { about?: ReactNode }) {
         setView(v);
       }}
       monitor={<SignalMonitor morse={morse} wpm={SPEEDS[speed]} active={player.playing} />}
-      dockKey={<DockKey keyer={keyer} ariaLabel={t.device.keyAria} tip={t.tips.key} />}
-      dockReadout={
-        notLetter ? (
+      pad={{
+        open: padOpen,
+        onKeyboard: backToKeyboard,
+        idle: t.station.pad.idle.translate,
+        keyEl: <PadKey keyer={keyer} ariaLabel={t.device.keyAria} tip={t.tips.key} />,
+        readout: notLetter ? (
           t.device.notALetter
         ) : liveCode ? (
           <>
             <MorseGlyphs morse={liveCode} size={8} />
             {liveLetter && <b>{liveLetter}</b>}
           </>
-        ) : undefined
-      }
+        ) : undefined,
+        side: (
+          <PadButton
+            icon={<Delete />}
+            label={t.station.pad.erase}
+            ariaLabel={t.station.pad.eraseAria}
+            disabled={!text}
+            onClick={() => setText((v) => v.slice(0, -1))}
+          />
+        ),
+      }}
+      telegraph={{
+        open: telegraph,
+        onOpenChange: (open) => {
+          keyer.reset();
+          if (open) setSweep((s) => s + 1);
+          setTelegraph(open);
+        },
+        // Lo último del mensaje, para ver la palabra mientras se teclea en el árbol
+        top: (
+          <div className="telegraph-msg">
+            {text ? (text.length > 22 ? "…" + text.slice(-21) : text) : <span>{tr.messageLabel}</span>}
+            <i aria-hidden className="telegraph-caret" />
+          </div>
+        ),
+      }}
     >
       <FieldLabel htmlFor="message">{tr.messageLabel}</FieldLabel>
-      <textarea
-        id="message"
-        value={text}
-        rows={3}
-        maxLength={MAX_LEN}
-        placeholder={tr.placeholder}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => {
-          // El morse no tiene saltos de línea: Enter reproduce el mensaje.
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            if (morse) togglePlay();
-          }
-        }}
-        className="station-message"
-      />
-      <div className="station-input-meta"><span>{t.station.editorHint}</span><span>{text.length} / {MAX_LEN}</span></div>
+      <div className="translate-input">
+        <textarea
+          ref={messageRef}
+          id="message"
+          value={text}
+          rows={3}
+          maxLength={MAX_LEN}
+          placeholder={tr.placeholder}
+          onChange={(e) => setText(e.target.value)}
+          onFocus={() => setPadOpen(false)}
+          onKeyDown={(e) => {
+            // El morse no tiene saltos de línea: Enter reproduce el mensaje.
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              if (morse) togglePlay();
+            }
+          }}
+          className="station-message"
+        />
+        {/* Celular: borrar todo va dentro del cuadro */}
+        {text && (
+          <button type="button" className="translate-clear" aria-label={tr.clear} onClick={clear}>
+            <X aria-hidden />
+          </button>
+        )}
+      </div>
+      <div className="station-input-meta">
+        <span>{t.station.editorHint}</span>
+        <span>{text.length} / {MAX_LEN}</span>
+        {/* Celular: abre el teclado morse en lugar del teclado */}
+        <button type="button" className="translate-key-btn" onClick={openPad}>
+          <span><Radio aria-hidden /></span>
+          {t.station.pad.open}
+        </button>
+      </div>
 
       <div className="translate-morse-head mt-6 mb-2 flex items-center justify-between gap-3">
         <span className="text-[15px] font-semibold">{tr.morseLabel}</span>
-        <Tooltip label={t.tips.copy} disabledLabel={whyNoMorse}>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={copy}
-            disabled={!morse}
-            aria-label={tr.copyAria}
-          >
-            {copied ? <Check /> : <Copy />}
-            {copied ? tr.copied : tr.copy}
-          </Button>
-        </Tooltip>
+        <span className="translate-wide">
+          <Tooltip label={t.tips.copy} disabledLabel={whyNoMorse}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={copy}
+              disabled={!morse}
+              aria-label={tr.copyAria}
+            >
+              {copied ? <Check /> : <Copy />}
+              {copied ? tr.copied : tr.copy}
+            </Button>
+          </Tooltip>
+        </span>
       </div>
-      <div className="station-morse-output">
+      {/* Celular: la señal va aquí, dentro de la tarjeta */}
+      <div className="translate-signal">
+        <SignalMonitor morse={morse} wpm={SPEEDS[speed]} active={player.playing} />
+      </div>
+      <div ref={outputRef} className="station-morse-output">
         {morse ? (
           <>
             <MorseGlyphs
@@ -238,19 +322,37 @@ export default function TranslateApp({ about }: { about?: ReactNode }) {
       </div>
       {skipped && <p className="mt-2 text-sm text-muted">{tr.skipped(skipped)}</p>}
 
-      <div className="mt-5 flex flex-wrap gap-2.5">
+      <div className="translate-actions mt-5 flex flex-wrap gap-2.5">
         <Tooltip label={msgPlaying ? t.tips.stop : t.tips.play} disabledLabel={whyNoMorse}>
           <Button variant="primary" onClick={togglePlay} disabled={!morse}>
             {msgPlaying ? <Square /> : <Play />}
             {msgPlaying ? tr.stop : tr.play}
           </Button>
         </Tooltip>
-        <Tooltip label={t.tips.clear} disabledLabel={t.tips.nothingToClear}>
-          <Button onClick={clear} disabled={!text}>
-            <Eraser />
-            {tr.clear}
-          </Button>
-        </Tooltip>
+        <span className="translate-wide">
+          <Tooltip label={t.tips.clear} disabledLabel={t.tips.nothingToClear}>
+            <Button onClick={clear} disabled={!text}>
+              <Eraser />
+              {tr.clear}
+            </Button>
+          </Tooltip>
+        </span>
+        {/* Celular: Copiar y la velocidad, en la misma fila que Reproducir */}
+        <Button className="translate-phone translate-copy" onClick={copy} disabled={!morse} aria-label={tr.copyAria}>
+          {copied ? <Check /> : <Copy />}
+          {copied ? tr.copied : tr.copy}
+        </Button>
+        <label className="translate-phone translate-speed-pick">
+          <span className="sr-only">{tr.speed}</span>
+          <select value={speed} onChange={(e) => setSpeed(e.target.value as Speed)}>
+            {(Object.keys(SPEEDS) as Speed[]).map((s) => (
+              <option key={s} value={s}>
+                {tr.speeds[s]}
+              </option>
+            ))}
+          </select>
+          <ChevronDown aria-hidden />
+        </label>
       </div>
 
       <div className="translate-speed mt-8 max-w-[380px]">

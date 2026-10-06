@@ -50,16 +50,25 @@ const es: Dict = {
     received: "RECIBIDO",
     // Lo que el muñeco del emblema dice en morse de vez en cuando.
     emblemWords: ["HOLA", "SOS", "OK", "CHAO"],
-    // Celular: el globo del muñeco junto al pulsador, cuando no suena nada.
-    dockIdle: {
-      translate: "Toca y teclea",
-      learn: "¿Cuál sonó?",
-      radio: "Teclea y sale al aire",
+    // Celular: el teclado morse, que sale donde sale el teclado del celular.
+    pad: {
+      label: "Teclado morse",
+      open: "Teclear en morse",
+      keyboard: "Teclado",
+      keyboardAria: "Volver al teclado del celular",
+      // El globo del muñeco, cuando no suena nada.
+      idle: {
+        translate: "Toca y teclea",
+        radio: "Teclea y sale al aire",
+      },
+      tree: "Árbol",
+      treeAria: "Abrir el árbol morse con el pulsador grande",
+      erase: "Borrar",
+      eraseAria: "Borrar la última letra",
+      dot: "Toque corto · punto",
+      dash: "Mantén · raya",
     },
-    treeShort: "Árbol",
-    treeHint: "Toca una letra para oír su recorrido",
     close: "Cerrar",
-    backToKey: "Volver a teclear",
     more: "Más opciones",
     settings: "Ajustes",
     theme: "Tema",
@@ -157,6 +166,12 @@ const es: Dict = {
     replay: "Oír de nuevo",
     next: "Siguiente letra",
     whichOne: "¿Qué letra sonó? Tócala en el árbol o tecléala.",
+    // Celular: la pantalla del aparato, encima del árbol.
+    ask: "¿Qué letra sonó?",
+    idleTitle: "Toca «Escuchar una letra»",
+    idleLetters: (letters: string) => `Letras: ${letters}`,
+    answerWithKey: "Responder con la tecla",
+    scoreShort: (right: number, total: number) => `${right} de ${total}`,
     howTo:
       "Toca la letra en el árbol, oprímela en tu teclado o tecléala con la barra espaciadora.",
     howToTouch: "Toca la letra en el árbol o tecléala con la tecla.",
@@ -206,6 +221,9 @@ const es: Dict = {
     messageLabel: "Mensaje",
     placeholder: "Escribe o usa la tecla",
     placeholderDirect: "Escribe y envía con Enter",
+    placeholderPhone: "Escribe un mensaje",
+    // Celular: la luz junto al pulsador en el teclado morse.
+    air: { on: "Al aire", busy: "Ocupado", free: "Libre" },
     send: "Transmitir",
     presence: (n: number) =>
       n <= 1 ? "Solo tú en este canal" : `${n} en este canal`,

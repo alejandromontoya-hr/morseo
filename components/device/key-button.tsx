@@ -129,10 +129,11 @@ export function KeyButton({
 }
 
 /**
- * El pulsador del celular, en el panel de abajo junto al pulgar: el mismo botón
- * redondo, sin la placa alrededor. Con el dedo no lleva globito: sostener es la raya.
+ * El pulsador del celular, al centro del teclado morse: el mismo botón redondo,
+ * más grande y sin la placa alrededor. Con el dedo no lleva globito: sostener
+ * es la raya.
  */
-export function DockKey({
+export function PadKey({
   keyer,
   disabled = false,
   ariaLabel,

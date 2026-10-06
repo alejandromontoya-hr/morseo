@@ -756,13 +756,35 @@
 .settings-links a { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--surface); color: var(--text); }
 .settings-links svg { width: 19px; height: 19px; }
 
-/* ──────────────── Celular: la herramienta en una pantalla ──────────────── */
+/* El árbol a pantalla completa (la pantalla de telégrafo): arriba tu mensaje y cerrar */
+.sheet-telegraph { top: 0; max-height: none; border-radius: 0; padding-top: calc(12px + env(safe-area-inset-top)); }
+.sheet-telegraph .sheet-grip { display: none; }
+.sheet-telegraph .sheet-head { margin: 0 0 12px; }
+.sheet-telegraph .board-readout { margin: 14px 0 10px; }
+.sheet-telegraph .learn-display { display: none; }
+.telegraph-top { flex: 1; min-width: 0; }
+.telegraph-msg { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px; border-radius: 14px; background: rgb(255 255 255 / 0.08); color: var(--mist); font: 18px/1 Consolas, monospace; white-space: nowrap; overflow: hidden; }
+.telegraph-msg > span { font-family: var(--font-sans); font-size: 14px; color: rgb(244 244 246 / 0.6); }
+.telegraph-msg small { flex: none; color: var(--lime); font: 600 11px/1 var(--font-barlow), sans-serif; letter-spacing: 0.12em; text-transform: uppercase; }
+.telegraph-caret { flex: none; width: 2px; height: 20px; margin-left: -6px; background: var(--lime); animation: caret-blink 1s steps(1) infinite; }
+@keyframes caret-blink { 50% { opacity: 0; } }
+.telegraph-learn { display: flex; gap: 8px; }
+.telegraph-text { flex: 1; min-width: 0; font: 600 14px/1.3 var(--font-sans); white-space: normal; }
+.telegraph-step { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--lime); color: var(--graphite); }
+.telegraph-step svg { width: 19px; height: 19px; }
+
+/* ─────────────── Celular: cada página completa y el teclado morse ─────────────── */
 
 /* Solo existen en el celular */
-.station-dock,
+.station-bar,
 .station-mobile-top,
-.station-back,
-.station-more { display: none; }
+.station-more,
+.translate-key-btn,
+.translate-clear,
+.translate-signal,
+.translate-phone,
+.learn-display { display: none; }
+.translate-wide { display: contents; }
 
 @media (max-width: 760px) {
   /* Arriba solo el logo y «⋯»: idioma, tema y enlaces van en Ajustes */
@@ -770,13 +792,17 @@
   .station-more { display: grid; place-items: center; flex: none; width: 44px; height: 44px; margin-left: auto; border-radius: 50%; background: var(--desk-raised); color: var(--text); }
   .station-more svg { width: 20px; height: 20px; }
 
-  /* El final de la página deja libre el alto del panel de abajo */
-  .station-main { padding-top: 8px; padding-bottom: calc(var(--dock-h, 104px) + 20px); }
+  /* El final de la página deja libre lo que está fijo abajo: la cápsula y la
+     fila de la página o, mientras está abierto, el teclado morse */
+  .station-main { padding-top: 8px; padding-bottom: calc(var(--nav-h, 64px) + var(--bar-h, 0px) + 40px + env(safe-area-inset-bottom)); }
+  :root[data-pad] .station-main { padding-bottom: calc(var(--pad-h, 260px) + 16px); }
+  /* Con el teclado morse abierto la cápsula se esconde, como con el teclado del celular */
+  :root[data-pad] .station-mobile-nav { display: none; }
 
-  /* Encabezado compacto: el lema y el título (lo que lee Google), nada más */
-  .station-heading { display: block; margin-bottom: 14px; }
-  .station-heading h1 { font-size: 25px; line-height: 1.15; letter-spacing: -0.03em; }
-  .station-eyebrow { margin-bottom: 4px; font-size: 13px; }
+  /* Encabezado: solo el título (lo que lee Google), en una línea */
+  .station-heading { display: block; margin-bottom: 12px; }
+  .station-heading h1 { font-size: 21px; line-height: 1.2; letter-spacing: -0.03em; }
+  .station-eyebrow,
   .station-lead,
   .station-heading .station-emblem,
   .station-toolbar,
@@ -786,97 +812,137 @@
   .station-mobile-top { display: grid; gap: 10px; margin-bottom: 12px; }
   /* Que nada de arriba ensanche la página más allá de la pantalla */
   .station-mobile-top > * { min-width: 0; }
-  .station-monitor { margin-bottom: 12px; padding: 9px 14px 2px; }
-  .station-monitor svg { height: 34px; }
   .station-workspace { gap: 12px; }
   .station-controls { padding: 16px; }
-  .station-message { height: 88px; min-height: 0; padding: 12px 14px; font-size: 20px; }
-  /* «Lenta, Media, Rápida» se entienden solas: el rótulo se va y la fila sube */
-  .translate-speed { margin-top: 16px; }
-  .translate-speed > label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-  .station-input-meta { padding-top: 6px; }
-  .station-morse-output { min-height: 40px; padding: 4px 0; }
-  .translate-morse-head { margin-top: 14px; }
-  /* Traducir y Al aire: el aparato no va aquí, se abre en una hoja desde «Árbol» */
+  /* Traducir y Al aire: el aparato no va al lado; «Árbol» lo abre a pantalla completa */
   .station-page[data-hand] .station-side { display: none; }
-  /* Aprender: el árbol se queda, pero el pulsador es el del panel de abajo */
-  .station-page[data-mode="learn"] .station-device .board > :last-child { display: none; }
-  .station-page[data-mode="learn"] .station-device .board { padding-bottom: 12px; }
 
-  /* El panel de abajo: el muñeco, el pulsador y un botón; la cápsula de páginas flota encima */
-  .station-dock {
-    display: block; position: fixed; left: 0; right: 0; bottom: 0; z-index: 35;
-    padding: 10px 14px calc(var(--nav-h, 64px) + 28px + env(safe-area-inset-bottom));
-    border-radius: 28px 28px 0 0; background: var(--desk-raised);
-    box-shadow: 0 -12px 30px -18px rgb(35 35 37 / 0.35);
-  }
-  .dark .station-dock { box-shadow: 0 0 0 1px var(--line), 0 -12px 30px -18px rgb(0 0 0 / 0.6); }
-  .station-dock-tools { display: grid; gap: 6px; max-height: 300px; padding-bottom: 4px; overflow: hidden; transition: max-height 0.25s ease, opacity 0.2s ease; }
-  .station-dock[data-collapsed] .station-dock-tools { max-height: 0; opacity: 0; }
-  .station-dock-row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 16px; min-height: 92px; }
-  /* Aro más delgado que en la tarjeta: cabe entero en su fila, lejos de la cápsula */
-  .station-dock .pulsador { width: 72px; height: 72px; box-shadow: 0 0 0 6px var(--p-gap), 0 0 0 7px var(--p-ring); }
-  .station-dock .pulsador[data-pressed="true"] {
-    box-shadow: 0 0 0 6px var(--p-gap), 0 0 0 7px var(--lime), 0 0 18px 4px color-mix(in oklab, var(--lime) 45%, transparent);
-  }
-  .station-dock .pulsador svg { width: 28px; height: 28px; }
-  .station-dock-action { justify-self: end; }
-  .station-dock-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text); font-size: 11px; font-weight: 600; }
-  .station-dock-btn > span { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--surface); }
-  .station-dock-btn svg { width: 20px; height: 20px; }
-  /* Al aire: escribir va encima del pulsador; Transmitir queda como botón redondo */
-  .station-dock-composer button { width: 48px; height: 48px; padding: 0; gap: 0; font-size: 0; }
-  .station-dock-composer button svg { width: 19px; height: 19px; }
-  .station-dock-composer input { height: 48px; }
+  /* La fila fija encima de la cápsula; lo que pasa por debajo se desvanece */
+  .station-bar { display: block; position: fixed; left: 12px; right: 12px; z-index: 35; bottom: calc(var(--nav-h, 64px) + 22px + env(safe-area-inset-bottom)); }
+  .station-bar::before { content: ""; position: absolute; z-index: -1; left: -12px; right: -12px; top: -16px; bottom: calc(-1 * (var(--nav-h, 64px) + 22px + env(safe-area-inset-bottom))); background: linear-gradient(to bottom, transparent, var(--desk) 22px); pointer-events: none; }
+  .station-round { flex: none; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: var(--desk-raised); color: var(--text); box-shadow: inset 0 0 0 1.5px var(--text); }
+  .station-round svg { width: 21px; height: 21px; }
+  .station-round-lime { background: var(--lime); color: var(--graphite); box-shadow: none; }
 
-  /* El muñeco junto al pulsador; su globo va en la línea de encima, con todo el ancho */
-  .dock-face { justify-self: start; }
-  .dock-face .station-face { position: static; display: block; width: 44px; height: 44px; transform: none; border-radius: 50%; background: var(--lime); }
-  .dock-bubble {
-    justify-self: start; display: flex; align-items: center; gap: 8px;
-    max-width: 100%; min-height: 30px; box-sizing: border-box; margin-left: 4px; padding: 4px 14px;
-    border-radius: 16px 16px 16px 4px; background: var(--surface);
-    color: var(--muted); font-size: 13px; line-height: 1.3; white-space: nowrap; overflow: hidden;
+  /* ── El teclado morse: sale donde sale el teclado del celular */
+  .morse-pad {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 45;
+    padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
+    border-radius: 26px 26px 0 0; background: var(--board); color: var(--mist);
+    box-shadow: 0 -14px 30px -18px rgb(35 35 37 / 0.55);
+    animation: sheet-up 0.24s cubic-bezier(0.2, 0.7, 0.2, 1);
   }
-  .dock-bubble[data-readout] > span:not(.dock-readout) { display: none !important; }
-  .dock-readout { display: inline-flex; align-items: center; gap: 10px; color: var(--text); font-weight: 600; }
-  .dock-readout b { font: 800 22px/1 var(--font-doto), monospace; font-variation-settings: "ROND" 100; }
-  .dock-bubble .station-say { font-size: 13px; }
-
-  /* Leyendo la guía: el panel se recoge y queda este botón para volver */
-  .station-back {
-    display: flex; align-items: center; gap: 10px; position: fixed; right: 16px; z-index: 36;
-    bottom: calc(var(--dock-h, 88px) + 12px); height: 48px; padding: 0 8px 0 18px;
-    border-radius: 999px; background: var(--ink); color: var(--ink-fg); font-size: 14px; font-weight: 600;
-    box-shadow: 0 10px 24px -10px rgb(35 35 37 / 0.6);
+  .dark .morse-pad { box-shadow: 0 0 0 1px #3a3a3e, 0 -14px 30px -18px rgb(0 0 0 / 0.6); }
+  .pad-top { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+  .morse-pad .dock-face { flex: none; }
+  .morse-pad .dock-face .station-face { position: static; display: block; width: 40px; height: 40px; transform: none; border-radius: 50%; background: var(--lime); }
+  /* El globo del muñeco: lo que suena, lo que él dice o el texto de reposo */
+  .pad-bubble { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: 16px 16px 16px 4px; background: rgb(255 255 255 / 0.08); color: rgb(244 244 246 / 0.7); font-size: 13px; white-space: nowrap; overflow: hidden; }
+  .pad-bubble[data-readout] > span:not(.pad-readout) { display: none !important; }
+  .pad-readout { display: inline-flex; align-items: center; gap: 10px; color: var(--mist); font-weight: 600; }
+  .pad-readout b { font: 800 22px/1 var(--font-doto), monospace; font-variation-settings: "ROND" 100; }
+  .pad-bubble .station-say { color: var(--mist); font-size: 13px; }
+  .pad-keyboard { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: 999px; background: rgb(255 255 255 / 0.09); color: var(--mist); font-size: 13px; font-weight: 600; }
+  .pad-keyboard svg { width: 17px; height: 17px; }
+  /* El pulsador al centro, como el botón de una cámara */
+  .pad-main { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; margin-top: 22px; }
+  .pad-side { justify-self: center; display: flex; flex-direction: column; align-items: center; gap: 7px; color: var(--mist); font-size: 12px; font-weight: 600; }
+  .pad-side > span { display: grid; place-items: center; width: 54px; height: 54px; border-radius: 50%; background: rgb(255 255 255 / 0.09); }
+  .pad-side svg { width: 21px; height: 21px; }
+  .pad-side:disabled { opacity: 0.4; }
+  .pad-light i { display: block; width: 14px; height: 14px; border-radius: 50%; background: #45454a; }
+  .pad-light[data-state="on"] i { background: var(--busy); box-shadow: 0 0 10px 2px color-mix(in oklab, var(--busy) 60%, transparent); }
+  .pad-light[data-state="busy"] i { background: var(--busy); opacity: 0.6; }
+  .morse-pad .pulsador {
+    --p-bg: #303034; --p-fg: var(--mist); --p-gap: var(--board); --p-ring: rgb(244 244 246 / 0.2);
+    width: 124px; height: 124px; box-shadow: 0 0 0 9px var(--p-gap), 0 0 0 10px var(--p-ring);
   }
-  .station-back > span { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--lime); color: var(--graphite); }
-  .station-back svg { width: 17px; height: 17px; }
+  .morse-pad .pulsador[data-pressed="true"] { box-shadow: 0 0 0 9px var(--p-gap), 0 0 0 10px var(--lime), 0 0 30px 6px color-mix(in oklab, var(--lime) 40%, transparent); }
+  .morse-pad .pulsador svg { width: 38px; height: 38px; }
+  .pad-hint { display: flex; justify-content: center; gap: 18px; margin-top: 24px; color: rgb(244 244 246 / 0.6); font: 600 10.5px/1 var(--font-barlow), sans-serif; letter-spacing: 0.14em; text-transform: uppercase; }
+  .pad-hint span { display: inline-flex; align-items: center; gap: 7px; }
+  .pad-hint i { display: block; height: 7px; border-radius: 4px; }
+  .pad-hint-dot { width: 7px; background: var(--lime); }
+  .pad-hint-dash { width: 18px; background: var(--mist); }
 
-  /* Aprender: los niveles en fichas y la respuesta encima del árbol */
+  /* ── Traducir: el texto, el morse y Reproducir a la vista */
+  .station-page[data-mode="translate"] > .station-monitor { display: none; }
+  .translate-input { position: relative; }
+  .station-message { height: 88px; min-height: 0; padding: 12px 46px 12px 14px; font-size: 20px; resize: none; }
+  .translate-clear { display: grid; place-items: center; position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; border-radius: 50%; background: var(--line); color: var(--muted); }
+  .translate-clear svg { width: 15px; height: 15px; }
+  .station-input-meta { align-items: center; padding: 8px 0 0 4px; font-size: 12px; }
+  .station-input-meta > span:first-child { display: none; }
+  .translate-key-btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px 0 5px; border-radius: 999px; background: var(--lime); color: var(--graphite); font-size: 14px; font-weight: 600; }
+  .translate-key-btn > span { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--graphite); color: var(--lime); }
+  .translate-key-btn svg { width: 16px; height: 16px; }
+  .translate-morse-head { margin-top: 16px; margin-bottom: 8px; }
+  .translate-wide { display: none; }
+  /* La señal, delgada, dentro de la tarjeta */
+  .translate-signal { display: block; }
+  .translate-signal .station-monitor { margin: 0; padding: 4px 10px; border-radius: 10px; }
+  .translate-signal .station-monitor > div { display: none; }
+  .translate-signal .station-monitor svg { height: 20px; }
+  .station-morse-output { min-height: 40px; padding: 10px 0 2px; }
+  /* Reproducir, Copiar y la velocidad en una sola fila */
+  .translate-actions { flex-wrap: nowrap; gap: 8px; margin-top: 12px; }
+  .translate-actions > :first-child { flex: 1; display: flex; }
+  .translate-actions > :first-child > button { flex: 1; }
+  .translate-phone { display: inline-flex; }
+  .translate-actions .translate-copy { width: 44px; padding: 0; gap: 0; font-size: 0; }
+  .translate-speed { display: none; }
+  .translate-speed-pick { position: relative; align-items: center; flex: none; }
+  .translate-speed-pick select { height: 44px; padding: 0 32px 0 14px; border: 0; border-radius: 999px; appearance: none; -webkit-appearance: none; background: var(--surface); color: var(--text); font-size: 15px; font-weight: 600; }
+  .translate-speed-pick svg { position: absolute; right: 11px; width: 16px; height: 16px; pointer-events: none; }
+
+  /* ── Aprender: el árbol entero con la pantalla del aparato encima */
   .learn-main { display: none; }
   .learn-chips { display: flex; gap: 8px; margin: 0 -20px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; }
   .learn-chips::-webkit-scrollbar { display: none; }
   .learn-chips button { flex: none; height: 40px; padding: 0 14px; border-radius: 999px; background: var(--desk-raised); color: var(--muted); font-size: 13px; font-weight: 600; white-space: nowrap; }
   .learn-chips button[aria-pressed="true"] { background: var(--lime); color: var(--graphite); }
-  .learn-ask { padding: 2px 2px 0; color: var(--muted); font-size: 15px; line-height: 1.45; }
-  /* En pantallas muy angostas el botón baja a su propia línea */
-  .learn-result { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px; border-radius: 22px; background: var(--desk-raised); }
-  .learn-result > button { margin-left: auto; }
-  .learn-result-letter { display: grid; place-items: center; flex: none; width: 52px; height: 52px; border-radius: 50%; background: var(--lime); color: var(--graphite); font-size: 28px; font-weight: 700; }
-  .learn-result-title { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 600; line-height: 1.3; }
-  .learn-result-title svg { flex: none; width: 17px; height: 17px; }
-  .learn-result-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 5px; color: var(--muted); font-size: 13px; }
+  /* Sin la marca, la argolla ni el pulsador: se responde tocando el árbol o con
+     la tecla a pantalla completa */
+  .station-page[data-mode="learn"] .station-device .board { padding: 10px 10px 8px; }
+  .station-page[data-mode="learn"] .station-device .board > .board-hole,
+  .station-page[data-mode="learn"] .station-device .board > .board-hole + div,
+  .station-page[data-mode="learn"] .station-device .board > :last-child { display: none; }
+  /* El árbol se ajusta al alto de la pantalla, para que quepa entero sobre el botón */
+  .station-page[data-mode="learn"] .station-device .board > svg { width: min(100%, calc((100dvh - 382px - env(safe-area-inset-bottom)) * 1.098)); margin: 6px auto 0; }
+  .learn-display { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 10px; min-height: 58px; padding: 9px 12px; border-radius: 14px; background: rgb(0 0 0 / 0.3); color: var(--mist); }
+  .learn-display-main { display: flex; align-items: center; gap: 7px; font-size: 15px; font-weight: 600; line-height: 1.3; }
+  .learn-display-main svg { flex: none; width: 16px; height: 16px; }
+  .learn-display-score { color: var(--lime); font-size: 11px; font-weight: 600; line-height: 1.8; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; }
+  .learn-display-sub { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; color: rgb(244 244 246 / 0.7); font: 12.5px/1.35 var(--font-sans); }
+  .learn-display-sub b { color: var(--mist); font-weight: 600; }
+  .learn-bar { display: flex; align-items: center; gap: 10px; }
+  .learn-bar-main { flex: 1; height: 52px; font-size: 16px; }
 
-  /* Al aire: el canal en una ficha; ajustarlo y escribir viven en hoja y panel */
+  /* ── Al aire: el estado en la ficha, el mensaje al centro y abajo la fila para escribir */
   .radio-setup,
   .radio-mode,
-  .radio-compose { display: none; }
+  .radio-compose,
+  .radio-status,
+  .radio-others,
+  .radio-note { display: none; }
+  .radio-status-row { min-height: 0; }
+  .radio-status-row:has(> :not(.radio-status)) { margin-bottom: 14px; }
+  .radio-feed { margin-top: 0; }
+  .radio-feed h2 { color: var(--muted); font-size: 13px; font-weight: 500; }
+  .radio-feed-text { margin-top: 6px; font-size: 24px; line-height: 1.15; }
   .radio-channel-chip { display: flex; align-items: center; gap: 10px; width: 100%; height: 56px; padding: 0 14px 0 10px; border-radius: 999px; background: var(--desk-raised); color: var(--text); text-align: left; }
   .radio-channel-chip > span:nth-child(2) { display: flex; flex: 1; flex-direction: column; min-width: 0; line-height: 1.25; }
-  .radio-channel-chip b { overflow: hidden; font-size: 14px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
+  .radio-channel-chip b,
+  .radio-channel-chip small { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .radio-channel-chip b { font-size: 14px; font-weight: 600; }
   .radio-channel-chip small { color: var(--muted); font-size: 12px; }
   .radio-channel-chip > svg { flex: none; width: 18px; height: 18px; }
+  .radio-bar { display: flex; align-items: center; gap: 8px; }
+  .radio-bar > div { flex: 1; min-width: 0; }
+  .radio-bar .station-round { width: 48px; height: 48px; }
+  .radio-bar input { height: 48px; background: var(--desk-raised); box-shadow: inset 0 0 0 1px var(--line); }
+  .radio-bar .radio-send { width: 48px; height: 48px; padding: 0; gap: 0; font-size: 0; }
+  .radio-bar .radio-send svg { width: 19px; height: 19px; }
 }
 
 @media (max-width: 370px) {

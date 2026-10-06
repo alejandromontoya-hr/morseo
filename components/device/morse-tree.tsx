@@ -26,6 +26,8 @@ const DOT_R = 8;
 const DASH_LONG = 26;
 const DASH_SHORT = 12;
 const HIT = 42;
+// Sin la serigrafía de arriba, el dibujo empieza aquí (las letras de la primera fila quedan).
+const COMPACT_CUT = 26;
 
 function geometry(n: TreeNode) {
   const isDash = n.code.endsWith("-");
@@ -120,6 +122,9 @@ function Lens({ g, on }: { g: Geo; on: boolean }) {
  *
  * Cada vez que cambia `sweep` (distinto de 0) una onda de luz sale de la antena
  * y recorre el árbol nivel por nivel: el arranque del aparato.
+ *
+ * `compact` quita la serigrafía de arriba (y su alto): en el celular, para
+ * que el árbol quepa entero junto al botón del ejercicio.
  */
 export function MorseTree({
   code,
@@ -129,6 +134,7 @@ export function MorseTree({
   words,
   ariaLabel,
   nodeLabel,
+  compact = false,
   className,
 }: {
   code: string;
@@ -139,6 +145,7 @@ export function MorseTree({
   words: [string, string];
   ariaLabel: string;
   nodeLabel: (node: TreeNode) => string;
+  compact?: boolean;
   className?: string;
 }) {
   const glowId = "glow" + useId().replace(/[^a-zA-Z0-9_-]/g, "");
@@ -168,7 +175,7 @@ export function MorseTree({
 
   return (
     <svg
-      viewBox={`0 0 ${W} ${H}`}
+      viewBox={compact ? `0 ${COMPACT_CUT} ${W} ${H - COMPACT_CUT}` : `0 0 ${W} ${H}`}
       role="group"
       aria-label={ariaLabel}
       className={cn("block h-auto w-full select-none", className)}
@@ -179,14 +186,14 @@ export function MorseTree({
         </filter>
       </defs>
 
-      <g className="fill-silk text-[15px] font-semibold tracking-[.18em]">
+      {!compact && <g className="fill-silk text-[15px] font-semibold tracking-[.18em]">
         <text x={X(1)} y={19} textAnchor="middle">
           {words[0]}
         </text>
         <text x={(X(4) + X(TREE_COLS - 1)) / 2} y={19} textAnchor="middle">
           {words[1]}
         </text>
-      </g>
+      </g>}
 
       <g fill="none" strokeWidth={1.6} strokeLinecap="round">
         {TREE.map((n) => {
