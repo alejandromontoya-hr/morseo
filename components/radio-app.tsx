@@ -512,7 +512,7 @@ export default function RadioApp() {
         {messages.length === 0 ? (
           <p className="mt-2 max-w-[48ch] text-[15px] leading-snug text-muted">{r.feedEmpty}</p>
         ) : (
-          <ul className="mt-1 divide-y divide-line">
+          <ul className="mt-1 max-h-[360px] divide-y divide-line overflow-y-auto pr-1">
             {messages.map((m) => {
               const mine = m.from === clientId;
               const playingThis = player.playingId === (m.tx ?? m.id);

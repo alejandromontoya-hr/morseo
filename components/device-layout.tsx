@@ -85,7 +85,6 @@ export function DeviceLayout({
               <div className="station-device">
                 {mobileAction && <div className="station-mobile-action">{mobileAction}</div>}
                 {board}
-                <p className="station-device-hint">{t.station.deviceHint}</p>
               </div>
             ) : (
               <>
@@ -98,6 +97,8 @@ export function DeviceLayout({
             )}
           </div>
         </div>
+        {/* Fuera de la columna: así el borde que se iguala con la tarjeta es el del aparato */}
+        {showTree && <p className="station-device-hint">{t.station.deviceHint}</p>}
       </div>
       <footer className="station-footer">
         <span>MORSEO · {t.station.footer}</span>

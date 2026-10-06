@@ -525,19 +525,25 @@
 .station-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; padding: 0 0 18px; border-bottom: 1px solid var(--line); }
 .station-section-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
 .station-section-label svg { width: 16px; height: 16px; }
-.station-workspace { display: grid; grid-template-columns: minmax(0,1fr) minmax(320px,390px); gap: 24px; align-items: start; }
+/* Las dos columnas terminan a la misma altura: la más corta se estira */
+.station-workspace { display: grid; grid-template-columns: minmax(0,1fr) minmax(320px,390px); gap: 24px; align-items: stretch; }
 /* El lado de teclear: el interruptor queda quieto y debajo cambia la vista */
-.station-side { min-width: 0; display: grid; gap: 14px; position: sticky; top: 24px; }
+.station-side { min-width: 0; display: flex; flex-direction: column; gap: 14px; }
 .station-view-switch { background: var(--desk-raised); }
 .station-view-switch button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 40px; }
 .station-view-switch svg { width: 16px; height: 16px; flex: none; }
-.station-swap { display: grid; gap: 14px; min-width: 0; animation: station-swap .28s cubic-bezier(.2,.7,.2,1); }
+.station-swap { flex: 1; display: flex; flex-direction: column; gap: 14px; min-width: 0; animation: station-swap .28s cubic-bezier(.2,.7,.2,1); }
 @keyframes station-swap { from { opacity: 0; transform: translateY(8px) scale(.985); } }
-.station-device { min-width: 0; width: 100%; }
+.station-device { flex: 1; display: flex; flex-direction: column; min-width: 0; width: 100%; }
+/* Si el aparato se estira, el aire queda entre el árbol y el pulsador, que baja al fondo */
+.station-device .board { flex: 1; display: flex; flex-direction: column; }
+.station-device .board > :last-child { margin-top: auto; padding-top: 16px; }
+/* En la vista Tecla se estira el panel del pulsador, con el botón al centro */
+.station-swap > .station-panel:first-child { flex: 1; display: flex; flex-direction: column; justify-content: center; }
 .station-panel { background: var(--desk-raised); border-radius: 28px; padding: 30px 28px; }
 .station-note strong { font-size: 14px; font-weight: 600; }
 .station-note p { margin-top: 8px; color: var(--muted); font-size: 14px; line-height: 1.6; }
-.station-device-hint { max-width: 39ch; margin: 20px auto 0; text-align: center; color: var(--muted); font-size: 12px; line-height: 1.7; }
+.station-device-hint { grid-column: 2; max-width: 39ch; margin: -4px auto 0; text-align: center; color: var(--muted); font-size: 12px; line-height: 1.7; }
 .station-controls { min-width: 0; background: var(--desk-raised); border-radius: 28px; padding: 30px; }
 .station-controls>label { font-size: 14px; }
 .station-controls button { font-size: 14px; }
@@ -585,9 +591,11 @@
 }
 @media(max-width: 1050px) {
   .station-workspace { grid-template-columns: minmax(0,1fr); }
-  .station-side { position: static; width: 100%; max-width: 440px; margin: 0 auto; }
+  .station-side { width: 100%; max-width: 440px; margin: 0 auto; }
+  .station-device-hint { grid-column: 1; }
   /* Al aprender, el aparato va primero: ahí se responde */
-  .station-page[data-mode="learn"] .station-side { order: -1; }
+  .station-page[data-mode="learn"] .station-side,
+  .station-page[data-mode="learn"] .station-device-hint { order: -1; }
   .station-device { max-width: 404px; margin: 0 auto; }
   .station-mobile-action { display: block; margin-bottom: 17px; }
   .station-mobile-action button { width: 100%; }
