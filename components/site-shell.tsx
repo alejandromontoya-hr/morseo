@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Barlow_Semi_Condensed, Doto, Inter } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "@/app/globals.css";
 
 import { LINKEDIN_URL } from "@/components/github-link";
@@ -77,6 +78,8 @@ export function SiteShell({ locale, children }: { locale: Locale; children: Reac
             </LanguageProvider>
           </TooltipProvider>
         </ThemeProvider>
+        {/* Visitas por página, país, equipo y de dónde llegan: solo se ven en el panel de Vercel */}
+        <Analytics />
       </body>
     </html>
   );
