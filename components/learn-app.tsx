@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Check, Play, RotateCcw, SkipForward, X } from "lucide-react";
 
 import { isOnControl, isTyping } from "@/lib/dom";
@@ -31,7 +31,7 @@ const LEARN_WPM = 15;
  * oprimiéndola en el teclado o tecleándola. Al responder, el árbol enciende el
  * camino correcto mientras vuelve a sonar. Si acertaste, sigue sola.
  */
-export default function LearnApp() {
+export default function LearnApp({ about }: { about?: ReactNode }) {
   const { t, locale } = useI18n();
   const l = t.learn;
   const player = useMorsePlayer();
@@ -222,7 +222,7 @@ export default function LearnApp() {
   );
 
   return (
-    <DeviceLayout mode="learn" title={l.title} lead={l.lead} board={board}
+    <DeviceLayout mode="learn" title={l.title} lead={l.lead} board={board} about={about}
       mobileAction={<Tooltip label={phase === "asking" ? t.tips.replay : phase === "idle" ? t.tips.start : t.tips.next}><Button variant="primary" onClick={phase === "asking" ? replay : ask}>
         {phase === "asking" ? <RotateCcw /> : <Play />}
         {phase === "asking" ? l.replay : phase === "idle" ? l.start : l.next}

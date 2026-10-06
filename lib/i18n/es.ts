@@ -8,14 +8,6 @@ const spoken = (code: string) =>
   [...code].map((s) => (s === "-" ? "raya" : "punto")).join(" ");
 
 const es: Dict = {
-  meta: {
-    title: "Morseo — Traductor de código morse",
-    description:
-      "Teclea o escribe en código morse y mira cómo cada letra enciende su camino en el árbol morse. Apréndelo de oído y transmítelo en vivo.",
-    learnTitle: "Aprende morse de oído — Morseo",
-    radioTitle: "Al aire — Morseo",
-  },
-
   nav: {
     translate: "Traducir",
     learn: "Aprender",
@@ -54,7 +46,6 @@ const es: Dict = {
   },
 
   station: {
-    eyebrow: "Estación personal",
     personalStation: "EL LENGUAJE DE LAS SEÑALES",
     received: "RECIBIDO",
     // Lo que el muñeco del emblema dice en morse de vez en cuando.
@@ -62,10 +53,17 @@ const es: Dict = {
     footer: "ESCUCHAR Y CONECTAR",
     links: "Sobre Morseo",
     linkedin: "Contáctame en LinkedIn",
+    // El título grande dice qué es la página, con las palabras que la gente busca.
     headings: {
-      translate: ["Tu estación.", "Tu señal."],
-      learn: ["Entrena la", "recepción."],
-      radio: ["Abre un canal.", "Conecta."],
+      translate: ["Traductor de", "código morse."],
+      learn: ["Aprende código morse", "de oído."],
+      radio: ["Transmite código morse", "en vivo."],
+    },
+    // El lema va pequeño, encima del título.
+    mottos: {
+      translate: "Tu estación. Tu señal.",
+      learn: "Entrena la recepción.",
+      radio: "Abre un canal. Conecta.",
     },
     deviceHint: "Toca una letra para escuchar su recorrido. Toque corto para punto; mantén para raya.",
     view: {
