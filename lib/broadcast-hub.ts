@@ -42,6 +42,30 @@ const HISTORY_MAX = 40;
 // El historial del morse se descarta pasado este tiempo para no crecer sin fin.
 const HISTORY_TTL_MS = 30 * 60 * 1000;
 
+// Turno de palabra: en cada canal transmite una persona a la vez, como en una
+// radio de verdad. Quien empieza a transmitir toma el canal; los demás esperan.
+/** Tras la última letra en directo, el canal sigue tomado este rato. */
+export const FLOOR_IDLE_MS = 3000;
+/** Nadie ocupa el canal más que esto seguido. */
+const FLOOR_MAX_MS = 30_000;
+/** Al agotar su turno, quien transmitía espera esto para que otros puedan entrar. */
+const FLOOR_REST_MS = 3000;
+
+type Floor = {
+  from: string;
+  user: string;
+  since: number;
+  until: number;
+  /** El turno llegó al máximo: al vencer, su dueño descansa FLOOR_REST_MS. */
+  capped: boolean;
+  timer?: ReturnType<typeof setTimeout>;
+};
+
+/** Por qué no se puede transmitir: otro tiene el canal, o te toca descansar. */
+export type FloorRefusal =
+  | { error: "busy"; from: string; user: string; ms: number }
+  | { error: "rest"; ms: number };
+
 function roomKey(band: Band, channel: number) {
   return `${band}:${channel}`;
 }
@@ -49,11 +73,15 @@ function roomKey(band: Band, channel: number) {
 type HubState = {
   clients: Map<string, Client>;
   history: Map<string, BroadcastMsg[]>;
+  floors: Map<string, Floor>;
 };
 
 const g = globalThis as unknown as { __morseoHub?: HubState };
 const hub: HubState =
-  g.__morseoHub ?? (g.__morseoHub = { clients: new Map(), history: new Map() });
+  g.__morseoHub ??
+  (g.__morseoHub = { clients: new Map(), history: new Map(), floors: new Map() });
+// Un concentrador creado antes de existir los turnos (hot-reload) no los trae.
+hub.floors ??= new Map();
 
 export function encodeSSE(obj: unknown): string {
   return `data: ${JSON.stringify(obj)}\n\n`;
@@ -77,6 +105,64 @@ function emitPresence(band: Band, channel: number) {
   }
 }
 
+/** Quién tiene el canal y por cuánto más; sin dueño, el canal está libre. */
+function floorPayload(band: Band, channel: number) {
+  const f = hub.floors.get(roomKey(band, channel));
+  const ms = f ? f.until - Date.now() : 0;
+  return f && ms > 0
+    ? { type: "floor" as const, from: f.from, user: f.user, ms }
+    : { type: "floor" as const, from: null, user: null, ms: 0 };
+}
+
+function emitFloor(band: Band, channel: number) {
+  const payload = encodeSSE(floorPayload(band, channel));
+  for (const c of hub.clients.values()) {
+    if (inRoom(c, band, channel)) c.send(payload);
+  }
+}
+
+/**
+ * Pide el canal para transmitir durante `holdMs`. Si está libre, o ya es tuyo,
+ * lo toma o lo alarga y devuelve null; si no, devuelve por qué no.
+ */
+export function takeFloor(
+  band: Band,
+  channel: number,
+  from: string,
+  user: string,
+  holdMs: number
+): FloorRefusal | null {
+  const key = roomKey(band, channel);
+  const now = Date.now();
+  const cur = hub.floors.get(key);
+  if (cur && cur.until > now && cur.from !== from) {
+    return { error: "busy", from: cur.from, user: cur.user, ms: cur.until - now };
+  }
+  if (cur && cur.until <= now && cur.capped && cur.from === from && now < cur.until + FLOOR_REST_MS) {
+    return { error: "rest", ms: cur.until + FLOOR_REST_MS - now };
+  }
+  const since = cur && cur.until > now ? cur.since : now;
+  const limit = since + FLOOR_MAX_MS;
+  const floor: Floor = { from, user, since, until: Math.min(now + holdMs, limit), capped: now + holdMs >= limit };
+  if (cur?.timer) clearTimeout(cur.timer);
+  hub.floors.set(key, floor);
+  // Al vencer, el canal queda libre. Si se agotó el turno, se recuerda un rato
+  // más para que su dueño descanse.
+  floor.timer = setTimeout(() => {
+    if (hub.floors.get(key) !== floor) return;
+    emitFloor(band, channel);
+    if (!floor.capped) {
+      hub.floors.delete(key);
+      return;
+    }
+    floor.timer = setTimeout(() => {
+      if (hub.floors.get(key) === floor) hub.floors.delete(key);
+    }, FLOOR_REST_MS);
+  }, floor.until - now);
+  emitFloor(band, channel);
+  return null;
+}
+
 export function subscribe(client: Client): () => void {
   hub.clients.set(client.id, client);
   const hist = hub.history.get(roomKey(client.band, client.channel)) ?? [];
@@ -88,6 +174,9 @@ export function subscribe(client: Client): () => void {
       messages: hist,
     })
   );
+  // Quien entra con el canal ocupado lo sabe de una vez.
+  const floor = floorPayload(client.band, client.channel);
+  if (floor.user) client.send(encodeSSE(floor));
   emitPresence(client.band, client.channel);
   return () => {
     const cur = hub.clients.get(client.id);
