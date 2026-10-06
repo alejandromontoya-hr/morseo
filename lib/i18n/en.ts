@@ -6,14 +6,6 @@ const spoken = (code: string) =>
   [...code].map((s) => (s === "-" ? "dash" : "dot")).join(" ");
 
 const en = {
-  meta: {
-    title: "Morseo — Morse code translator",
-    description:
-      "Key or type Morse code and watch each letter light up its path on the Morse tree. Learn it by ear and send it live.",
-    learnTitle: "Learn Morse by ear — Morseo",
-    radioTitle: "On air — Morseo",
-  },
-
   nav: {
     translate: "Translate",
     learn: "Learn",
@@ -52,7 +44,6 @@ const en = {
   },
 
   station: {
-    eyebrow: "Personal station",
     personalStation: "THE LANGUAGE OF SIGNALS",
     received: "RECEIVED",
     // What the emblem's little guy says in Morse now and then.
@@ -60,10 +51,17 @@ const en = {
     footer: "LISTEN & CONNECT",
     links: "About Morseo",
     linkedin: "Contact me on LinkedIn",
+    // The big title says what the page is, in the words people search for.
     headings: {
-      translate: ["Your station.", "Your signal."],
-      learn: ["Train your", "listening."],
-      radio: ["Open a channel.", "Connect."],
+      translate: ["Morse code", "translator."],
+      learn: ["Learn Morse code", "by ear."],
+      radio: ["Send Morse code", "live."],
+    },
+    // The motto goes small, above the title.
+    mottos: {
+      translate: "Your station. Your signal.",
+      learn: "Train your listening.",
+      radio: "Open a channel. Connect.",
     },
     deviceHint: "Tap a letter to hear its path. Tap the key for a dot; hold for a dash.",
     view: {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Check, Copy, Eraser, Play, Square } from "lucide-react";
 
 import { isTyping } from "@/lib/dom";
@@ -28,7 +28,7 @@ const MAX_LEN = 250;
  * muestra la letra que tecleas o la que suena, y abajo sale el mensaje entero
  * en morse.
  */
-export default function TranslateApp() {
+export default function TranslateApp({ about }: { about?: ReactNode }) {
   const { t } = useI18n();
   const tr = t.translate;
   const player = useMorsePlayer();
@@ -158,7 +158,7 @@ export default function TranslateApp() {
 
   return (
     <DeviceLayout
-      mode="translate" title={tr.title} lead={tr.lead} board={board}
+      mode="translate" title={tr.title} lead={tr.lead} board={board} about={about}
       hand={
         <HandKey
           keyer={keyer}

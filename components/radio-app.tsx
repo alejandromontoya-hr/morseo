@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Dices, RotateCcw, Send, Volume2 } from "lucide-react";
 
 import { randomCallsign } from "@/lib/callsign";
@@ -101,7 +101,7 @@ const inputClass =
  * escribiendo o con la tecla; lo que llega suena en orden y se ve pasar por el
  * árbol del aparato.
  */
-export default function RadioApp() {
+export default function RadioApp({ about }: { about?: ReactNode }) {
   const { t, locale } = useI18n();
   const r = t.radio;
   const player = useMorsePlayer();
@@ -418,7 +418,7 @@ export default function RadioApp() {
   );
 
   return (
-    <DeviceLayout mode="radio" title={r.title} lead={r.lead} board={board}
+    <DeviceLayout mode="radio" title={r.title} lead={r.lead} board={board} about={about}
       hand={
         <HandKey
           keyer={keyer}

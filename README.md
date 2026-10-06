@@ -7,22 +7,24 @@ en móvil. Conserva el aparato original: placa de circuito, pantalla,
 **árbol morse** con luces y tecla telegráfica. Cada punto enciende un círculo
 verde y cada raya una barra roja, desde la antena hasta la letra.
 
-Tiene modo día (placa blanca) y modo noche (placa negra), y dos idiomas
-(inglés por defecto y español).
+Tiene modo día (placa blanca) y modo noche (placa negra), y dos idiomas con
+direcciones propias: inglés en la raíz y español bajo `/es`. El idioma lo
+decide la dirección, así Google indexa las dos versiones; el botón EN/ES lleva
+a la misma página en el otro idioma y se recuerda para la próxima visita.
 
 ## Páginas
 
-- **Traducir** (`/`) — un solo mensaje que se arma escribiendo o con la tecla
+- **Traducir** (`/` · `/es`) — un solo mensaje que se arma escribiendo o con la tecla
   (botón en pantalla o barra espaciadora). Al lado del editor está el panel
   para teclear, con un interruptor **Tecla | Árbol morse**: «Tecla» muestra
   solo la tecla redonda y «Árbol morse» la cambia, en el mismo lugar, por el
   aparato completo. Se puede copiar o reproducir el mensaje a tres velocidades.
-- **Aprender** (`/learn`) — práctica de escucha por niveles (orden de
+- **Aprender** (`/learn` · `/es/aprender`) — práctica de escucha por niveles (orden de
   aprendizaje tipo Koch). Suena una letra y se responde tocándola en el árbol,
   oprimiéndola en el teclado o tecleándola. Al responder, el árbol enciende el
   camino correcto. El aparato está siempre visible; en móvil va primero, con
   un acceso a escuchar/repetir justo encima.
-- **Al aire** (`/radio`) — telégrafo en vivo con 6 canales. Al entrar ya
+- **Al aire** (`/radio` · `/es/al-aire`) — telégrafo en vivo con 6 canales. Al entrar ya
   estás escuchando el canal 1: lo que se transmite suena en orden y pasa por
   el árbol. Tiene el mismo interruptor **Tecla | Árbol morse** y otro para
   **Cómo transmitir**: en **Directo** (el que viene por defecto) cada letra
@@ -38,7 +40,24 @@ Cambiar entre «Tecla» y «Árbol morse» conserva el mensaje y cancela la
 pulsación en curso. La barra espaciadora es la tecla incluso después de hacer
 clic en un botón; solo si llegas a un botón con Tab, la barra lo activa.
 
-Las rutas anteriores `/curso` y `/broadcast` redirigen a `/learn` y `/radio`.
+Debajo de cada herramienta hay una guía (cómo se usa, alfabeto morse,
+orden de estudio, abreviaturas y preguntas frecuentes) en el HTML del servidor.
+
+Las rutas anteriores `/curso` y `/broadcast` redirigen a `/es/aprender` y
+`/radio`; `/en/…`, `/aprender`, `/al-aire`, `/es/learn` y `/es/radio` llevan a
+su dirección oficial.
+
+## Buscadores e IA
+
+- `app/sitemap.ts` → `/sitemap.xml`: las 6 páginas, cada una con su par en el
+  otro idioma.
+- `app/robots.ts` → `/robots.txt`: abierto a todos (Google, Bing, ChatGPT,
+  Claude, Perplexity…) menos `/api/`.
+- `app/llms.txt/route.ts` → `/llms.txt`: resumen del sitio para asistentes de IA.
+- `lib/seo.ts`: título, descripción, dirección oficial (canonical), idiomas
+  (hreflang) y la ficha JSON-LD (WebApplication + preguntas frecuentes).
+- `opengraph-image.tsx` en cada página: la tarjeta al compartir el enlace.
+- `lib/content/*`: los textos que leen los buscadores, en inglés y español.
 
 ## Uso
 
@@ -70,10 +89,13 @@ despliegue serverless multiinstancia tal cual.)
 
 ## Estructura
 
-- `app/layout.tsx` — tema (next-themes), idioma, navegación y fuentes
-  (Barlow Semi Condensed para el aparato y Doto para su pantalla; la interfaz
-  Estación usa Arial y tipografía monoespaciada del sistema).
-- `app/page.tsx` · `app/learn/page.tsx` · `app/radio/page.tsx` — las 3 vistas.
+- `components/site-shell.tsx` — el documento de cada idioma: tema
+  (next-themes), idioma, navegación y fuentes (Barlow Semi Condensed para el
+  aparato y Doto para su pantalla). Lo usan las dos raíces: `app/(en)/layout.tsx`
+  y `app/es/layout.tsx`.
+- `app/(en)/…` y `app/es/…` — las 3 vistas en cada idioma.
+- `app/global-not-found.tsx` — el 404, en los dos idiomas.
+- `components/guide/*` — la guía bajo cada herramienta.
 - `app/api/broadcast/*` — rutas SSE y de envío.
 - `app/globals.css` — colores de la placa, los LED y la mesa para ambos temas.
 - `components/translate-app.tsx`, `learn-app.tsx`, `radio-app.tsx` — cada
@@ -91,4 +113,5 @@ despliegue serverless multiinstancia tal cual.)
 - `lib/use-morse-player.ts` — reproducción sincronizada con el árbol.
 - `lib/use-straight-key.ts` · `lib/use-keyer.ts` — tecla adaptativa a tu ritmo.
 - `lib/morse-learn.ts` — niveles de aprendizaje y trucos mnemotécnicos.
-- `lib/i18n/*` — textos en inglés y español.
+- `lib/i18n/*` — textos de la interfaz en inglés y español; `routes.ts`, la
+  dirección de cada página en cada idioma.

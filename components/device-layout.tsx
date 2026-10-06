@@ -15,6 +15,7 @@ export type DeviceView = "key" | "tree";
  * teclea a mano. Con `hand` ese lado tiene un interruptor fijo arriba: «Tecla»
  * muestra solo la tecla redonda y «Árbol morse» la cambia, en el mismo lugar,
  * por el aparato completo. Sin `hand` (Aprender) el aparato está siempre.
+ * `about` es la guía de debajo (cómo se usa, alfabeto, preguntas frecuentes).
  */
 export function DeviceLayout({
   title,
@@ -27,6 +28,7 @@ export function DeviceLayout({
   onViewChange,
   monitor,
   mobileAction,
+  about,
 }: {
   title: string;
   lead: ReactNode;
@@ -38,6 +40,7 @@ export function DeviceLayout({
   onViewChange?: (view: DeviceView) => void;
   monitor?: ReactNode;
   mobileAction?: ReactNode;
+  about?: ReactNode;
 }) {
   const { t } = useI18n();
   const heading = t.station.headings[mode];
@@ -46,7 +49,7 @@ export function DeviceLayout({
     <div className="station-page" data-mode={mode}>
       <header className="station-heading">
         <div>
-          <p className="station-eyebrow">{t.station.eyebrow} / {title}</p>
+          <p className="station-eyebrow">{t.station.mottos[mode]}</p>
           <h1>{heading[0]} <span>{heading[1]}</span></h1>
           <p className="station-lead">{lead}</p>
         </div>
@@ -100,6 +103,7 @@ export function DeviceLayout({
         {/* Fuera de la columna: así el borde que se iguala con la tarjeta es el del aparato */}
         {showTree && <p className="station-device-hint">{t.station.deviceHint}</p>}
       </div>
+      {about && <div className="station-guide">{about}</div>}
       <footer className="station-footer">
         <span>MORSEO · {t.station.footer}</span>
         {/* Solo los logos: quien los conoce sabe a dónde llevan; el nombre va para lectores de pantalla */}

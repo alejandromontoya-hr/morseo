@@ -1,11 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import { Barlow_Semi_Condensed, Doto, Inter } from "next/font/google";
-import "./globals.css";
+import "@/app/globals.css";
 
+import { LINKEDIN_URL } from "@/components/github-link";
 import { SiteNav } from "@/components/site-nav";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/lib/i18n/context";
+import type { Locale } from "@/lib/i18n/config";
+import { SITE_URL } from "@/lib/i18n/routes";
 
 // Barlow: letra de rotulado industrial, como la de los paneles de equipos.
 const barlow = Barlow_Semi_Condensed({
@@ -29,16 +32,15 @@ const doto = Doto({
   variable: "--font-doto",
 });
 
-// El idioma por defecto es inglés; la metadata renderizada en el servidor va en
-// inglés y el título se ajusta al idioma elegido desde el cliente (ver
-// LanguageProvider). Ver lib/i18n/en.ts para las cadenas.
-export const metadata: Metadata = {
-  title: "Morseo — Morse code translator",
-  description:
-    "Key or type Morse code and watch each letter light up its path on the Morse tree. Learn it by ear and send it live.",
+/** Lo que comparten las páginas de los dos idiomas; cada una pone su título. */
+export const siteMetadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  applicationName: "Morseo",
+  authors: [{ name: "Alejandro Montoya", url: LINKEDIN_URL }],
+  creator: "Alejandro Montoya",
 };
 
-export const viewport: Viewport = {
+export const siteViewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: [
@@ -47,12 +49,15 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+/**
+ * El documento completo de una página. Hay una raíz por idioma (app/(en) y
+ * app/es) para que el servidor entregue `<html lang>` y los textos ya en el
+ * idioma de la dirección.
+ */
+export function SiteShell({ locale, children }: { locale: Locale; children: React.ReactNode }) {
   return (
     <html
-      lang="en"
+      lang={locale}
       suppressHydrationWarning
       className={`${inter.variable} ${barlow.variable} ${doto.variable}`}
     >
@@ -64,7 +69,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <TooltipProvider>
-            <LanguageProvider>
+            <LanguageProvider locale={locale}>
               <SiteNav />
               <main className="station-main">
                 {children}
