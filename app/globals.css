@@ -333,6 +333,54 @@
   outline-color: var(--mist);
 }
 
+/* ───────────────────────────── Globito ───────────────────────────── */
+
+/* La cápsula del menú en pequeño: grafito en claro, niebla en oscuro (--ink) */
+.tip {
+  z-index: 60;
+  max-width: 240px;
+  padding: 7px 12px;
+  border-radius: 14px;
+  background: var(--ink);
+  color: var(--ink-fg);
+  font: 500 12.5px/1.35 var(--font-sans);
+  /* Centrado, y las líneas de un texto largo con el mismo largo: ninguna queda trunca */
+  text-align: center;
+  text-wrap: balance;
+  box-shadow: 0 8px 20px -8px rgb(0 0 0 / 0.35);
+  transform-origin: var(--radix-tooltip-content-transform-origin);
+  animation: tip-in 0.14s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.tip[data-side="bottom"] {
+  animation-name: tip-in-below;
+}
+.tip-arrow {
+  fill: var(--ink);
+}
+@keyframes tip-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px) scale(0.97);
+  }
+}
+@keyframes tip-in-below {
+  from {
+    opacity: 0;
+    transform: translateY(-3px) scale(0.97);
+  }
+}
+.tip-wrap {
+  display: inline-flex;
+  flex: none;
+  border-radius: 999px;
+}
+/* Sostener el dedo es para leer el globito: sin menú de enlace ni selección de texto */
+[data-tip] {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 /* ───────────────────────────── Al aire ───────────────────────────── */
 
 /* La torre en su disco lima. Las ondas crecen desde la antena (12, 9) y se

@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { Tooltip } from "@/components/ui/tooltip";
 
 /** El repositorio público de Morseo. */
 export const REPO_URL = "https://github.com/alejandromontoya-hr/morseo";
@@ -26,18 +27,19 @@ export function LinkedInMark({ className }: { className?: string }) {
 /** Botón redondo de la barra de arriba que abre el repositorio en otra pestaña. */
 export function GitHubButton({ label, className }: { label: string; className?: string }) {
   return (
-    <a
-      href={REPO_URL}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label={label}
-      title={label}
-      className={cn(
-        "inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-desk-raised text-text transition-[background-color] hover:bg-line",
-        className
-      )}
-    >
-      <GitHubMark className="size-[18px]" />
-    </a>
+    <Tooltip label={label} side="bottom">
+      <a
+        href={REPO_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={label}
+        className={cn(
+          "inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-desk-raised text-text transition-[background-color] hover:bg-line",
+          className
+        )}
+      >
+        <GitHubMark className="size-[18px]" />
+      </a>
+    </Tooltip>
   );
 }

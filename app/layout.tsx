@@ -4,6 +4,7 @@ import "./globals.css";
 
 import { SiteNav } from "@/components/site-nav";
 import { ThemeProvider } from "@/components/theme-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/lib/i18n/context";
 
 // Barlow: letra de rotulado industrial, como la de los paneles de equipos.
@@ -62,12 +63,14 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <LanguageProvider>
-            <SiteNav />
-            <main className="station-main">
-              {children}
-            </main>
-          </LanguageProvider>
+          <TooltipProvider>
+            <LanguageProvider>
+              <SiteNav />
+              <main className="station-main">
+                {children}
+              </main>
+            </LanguageProvider>
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>

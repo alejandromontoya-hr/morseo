@@ -4,6 +4,7 @@ import { type ReactNode } from "react";
 import { CircleDot, Network, Radio } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { Segmented } from "@/components/ui/segmented";
+import { Tooltip } from "@/components/ui/tooltip";
 import { StationEmblem } from "@/components/station-emblem";
 import { GitHubMark, LINKEDIN_URL, LinkedInMark, REPO_URL } from "@/components/github-link";
 
@@ -102,13 +103,17 @@ export function DeviceLayout({
         <span>MORSEO · {t.station.footer}</span>
         {/* Solo los logos: quien los conoce sabe a dónde llevan; el nombre va para lectores de pantalla */}
         <nav aria-label={t.station.links}>
-          <a href={REPO_URL} target="_blank" rel="noopener noreferrer" aria-label={t.nav.repo} title={t.nav.repo}>
-            <GitHubMark />
-          </a>
-          {LINKEDIN_URL && (
-            <a href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer" aria-label={t.station.linkedin} title={t.station.linkedin}>
-              <LinkedInMark />
+          <Tooltip label={t.nav.repo}>
+            <a href={REPO_URL} target="_blank" rel="noopener noreferrer" aria-label={t.nav.repo}>
+              <GitHubMark />
             </a>
+          </Tooltip>
+          {LINKEDIN_URL && (
+            <Tooltip label={t.station.linkedin}>
+              <a href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer" aria-label={t.station.linkedin}>
+                <LinkedInMark />
+              </a>
+            </Tooltip>
           )}
         </nav>
       </footer>

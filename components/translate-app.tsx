@@ -16,6 +16,7 @@ import { DeviceLayout, FieldLabel, type DeviceView } from "@/components/device-l
 import { MorseGlyphs } from "@/components/morse-glyphs";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { Tooltip } from "@/components/ui/tooltip";
 import { SignalMonitor } from "@/components/signal-monitor";
 
 const SPEEDS = { slow: 8, medium: 12, fast: 18 } as const;
@@ -87,6 +88,8 @@ export default function TranslateApp() {
   }, [text]);
 
   const msgPlaying = player.playingId === "msg";
+  // Por qué Reproducir y Copiar se apagan: no hay mensaje, o no tiene morse.
+  const whyNoMorse = text.trim() ? t.tips.noMorse : t.tips.needMessage;
 
   // Lo que muestra el árbol: lo que suena manda; si no, lo que tecleas.
   const keying = keyer.seq + (keyer.pending ?? "");
@@ -146,6 +149,8 @@ export default function TranslateApp() {
           shortLabel={t.device.short}
           longLabel={t.device.long}
           txLabel={t.device.tx}
+          keyTip={t.tips.key}
+          txTip={t.tips.tx}
         />
       </div>
     </Board>
@@ -159,6 +164,7 @@ export default function TranslateApp() {
           keyer={keyer}
           notice={notLetter ? t.device.notALetter : undefined}
           ariaLabel={t.device.keyAria}
+          tip={t.tips.key}
           {...t.station.hand}
         />
       }
@@ -191,16 +197,18 @@ export default function TranslateApp() {
 
       <div className="mt-6 mb-2 flex items-center justify-between gap-3">
         <span className="text-[15px] font-semibold">{tr.morseLabel}</span>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={copy}
-          disabled={!morse}
-          aria-label={tr.copyAria}
-        >
-          {copied ? <Check /> : <Copy />}
-          {copied ? tr.copied : tr.copy}
-        </Button>
+        <Tooltip label={t.tips.copy} disabledLabel={whyNoMorse}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={copy}
+            disabled={!morse}
+            aria-label={tr.copyAria}
+          >
+            {copied ? <Check /> : <Copy />}
+            {copied ? tr.copied : tr.copy}
+          </Button>
+        </Tooltip>
       </div>
       <div className="station-morse-output">
         {morse ? (
@@ -220,14 +228,18 @@ export default function TranslateApp() {
       {skipped && <p className="mt-2 text-sm text-muted">{tr.skipped(skipped)}</p>}
 
       <div className="mt-5 flex flex-wrap gap-2.5">
-        <Button variant="primary" onClick={togglePlay} disabled={!morse}>
-          {msgPlaying ? <Square /> : <Play />}
-          {msgPlaying ? tr.stop : tr.play}
-        </Button>
-        <Button onClick={clear} disabled={!text}>
-          <Eraser />
-          {tr.clear}
-        </Button>
+        <Tooltip label={msgPlaying ? t.tips.stop : t.tips.play} disabledLabel={whyNoMorse}>
+          <Button variant="primary" onClick={togglePlay} disabled={!morse}>
+            {msgPlaying ? <Square /> : <Play />}
+            {msgPlaying ? tr.stop : tr.play}
+          </Button>
+        </Tooltip>
+        <Tooltip label={t.tips.clear} disabledLabel={t.tips.nothingToClear}>
+          <Button onClick={clear} disabled={!text}>
+            <Eraser />
+            {tr.clear}
+          </Button>
+        </Tooltip>
       </div>
 
       <div className="mt-8 max-w-[380px]">

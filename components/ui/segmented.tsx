@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
+import { Tooltip } from "@/components/ui/tooltip";
 
 /**
  * Selector de pocas opciones, todas a la vista (velocidad, nivel, canal).
@@ -36,22 +37,22 @@ export function Segmented<T extends string | number>({
       {options.map((o) => {
         const active = o.value === value;
         return (
-          <button
-            key={String(o.value)}
-            type="button"
-            disabled={disabled}
-            aria-pressed={active}
-            title={o.title}
-            onClick={() => onChange(o.value)}
-            className={cn(
-              "h-9 min-w-0 truncate rounded-full px-2 text-[15px] font-semibold transition-colors",
-              active
-                ? "bg-lime text-graphite"
-                : "text-muted hover:text-text"
-            )}
-          >
-            {o.label}
-          </button>
+          <Tooltip key={String(o.value)} label={o.title}>
+            <button
+              type="button"
+              disabled={disabled}
+              aria-pressed={active}
+              onClick={() => onChange(o.value)}
+              className={cn(
+                "h-9 min-w-0 truncate rounded-full px-2 text-[15px] font-semibold transition-colors",
+                active
+                  ? "bg-lime text-graphite"
+                  : "text-muted hover:text-text"
+              )}
+            >
+              {o.label}
+            </button>
+          </Tooltip>
         );
       })}
     </div>
