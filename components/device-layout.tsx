@@ -50,7 +50,7 @@ export function DeviceLayout({
           <h1>{heading[0]} <span>{heading[1]}</span></h1>
           <p className="station-lead">{lead}</p>
         </div>
-        <StationEmblem label={`R / ${t.station.received}`} />
+        <StationEmblem label={`R / ${t.station.received}`} words={t.station.emblemWords} />
       </header>
       <div className="station-toolbar">
         <span className="station-section-label"><Radio aria-hidden />{title}</span>

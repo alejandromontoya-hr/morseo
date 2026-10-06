@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 
 import { NEUTRAL, createFace, faceShape } from "@/lib/emblem-face";
+import { toneNow } from "@/lib/tone";
 
 // Más lejos que esto, el puntero ya no tira más de los ojos (px).
 const REACH_PX = 220;
@@ -15,27 +16,33 @@ const rest = faceShape(NEUTRAL);
 
 /**
  * El emblema de la estación: anillos y el disco lima con el muñeco. Sigue el
- * puntero con los ojos, parpadea, se sorprende, piensa y guiña. Pasar el
- * puntero por encima lo hace guiñar; un clic, sorprenderse. Con movimiento
- * reducido se queda quieto como la R en morse.
+ * puntero con los ojos, parpadea, se sorprende, piensa, guiña y a veces dice
+ * una palabra en morse en su letrero. Cuando suena morse en la página mira el
+ * aparato y abre la boca con cada tono. Pasar el puntero por encima lo hace
+ * guiñar; un clic, sorprenderse. Con movimiento reducido se queda quieto.
  */
-export function StationEmblem({ label }: { label: string }) {
+export function StationEmblem({ label, words }: { label: string; words: string[] }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const leftRef = useRef<SVGEllipseElement>(null);
   const rightRef = useRef<SVGEllipseElement>(null);
   const lidLRef = useRef<SVGPathElement>(null);
   const lidRRef = useRef<SVGPathElement>(null);
   const mouthRef = useRef<SVGPathElement>(null);
+  const labelRef = useRef<HTMLSpanElement>(null);
+  const sayRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const root = rootRef.current;
     const eyes = [leftRef.current, rightRef.current];
     const lids = [lidLRef.current, lidRRef.current];
     const mouth = mouthRef.current;
-    if (!root || !eyes[0] || !eyes[1] || !lids[0] || !lids[1] || !mouth) return;
+    const labelEl = labelRef.current;
+    const sayEl = sayRef.current;
+    if (!root || !eyes[0] || !eyes[1] || !lids[0] || !lids[1] || !mouth || !labelEl || !sayEl) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const face = createFace();
+    const face = createFace(Math.random, words);
+    let said: string | null = null;
     const pointer = { x: 0, y: 0, seen: false, at: 0 };
     let lastStartle = -Infinity;
 
@@ -60,6 +67,21 @@ export function StationEmblem({ label }: { label: string }) {
       }
       Object.assign(pointer, { x: e.clientX, y: e.clientY, seen: true, at: now });
     };
+    // Hacia el aparato (el árbol o el panel del pulsador): ahí mira cuando suena.
+    const device = () => {
+      const el =
+        document.querySelector(".station-side .board") ??
+        document.querySelector(".station-side .station-panel") ??
+        document.querySelector(".station-side");
+      if (!el) return { x: 0, y: 1 };
+      const b = el.getBoundingClientRect();
+      const c = center();
+      const dx = b.left + b.width / 2 - c.x;
+      const dy = b.top + b.height / 2 - c.y;
+      const d = Math.hypot(dx, dy) || 1;
+      return { x: dx / d, y: dy / d };
+    };
+
     const onEnter = (e: PointerEvent) => {
       // Con el dedo no hay «pasar por encima»: el toque lo asusta (onDown).
       if (e.pointerType !== "mouse") return;
@@ -83,9 +105,25 @@ export function StationEmblem({ label }: { label: string }) {
         lookX = (dx / d) * pull;
         lookY = (dy / d) * pull;
       }
+      const dev = device();
       const s = faceShape(
-        face.frame(now, { lookX, lookY, idleMs: pointer.seen ? now - pointer.at : Infinity })
+        face.frame(now, {
+          lookX,
+          lookY,
+          idleMs: pointer.seen ? now - pointer.at : Infinity,
+          tone: toneNow.on,
+          deviceX: dev.x,
+          deviceY: dev.y,
+        })
       );
+      // El letrero: lo que va diciendo en morse, o el de siempre.
+      const next = face.say();
+      if (next !== said) {
+        said = next;
+        sayEl.textContent = next ?? "";
+        sayEl.hidden = next == null;
+        labelEl.hidden = next != null;
+      }
       [s.left, s.right].forEach((e, i) => {
         const el = eyes[i]!;
         el.setAttribute("cx", String(e.cx));
@@ -118,11 +156,13 @@ export function StationEmblem({ label }: { label: string }) {
     return () => {
       cancelAnimationFrame(raf);
       seen.disconnect();
+      sayEl.hidden = true;
+      labelEl.hidden = false;
       window.removeEventListener("pointermove", onMove);
       root.removeEventListener("pointerenter", onEnter);
       root.removeEventListener("pointerdown", onDown);
     };
-  }, []);
+  }, [words]);
 
   return (
     <div ref={rootRef} className="station-emblem" aria-hidden>
@@ -139,7 +179,10 @@ export function StationEmblem({ label }: { label: string }) {
         <path ref={lidLRef} d={rest.lidL.d} strokeWidth={rest.lidL.strokeWidth} opacity={rest.lidL.opacity} />
         <path ref={lidRRef} d={rest.lidR.d} strokeWidth={rest.lidR.strokeWidth} opacity={rest.lidR.opacity} />
       </svg>
-      <small>{label}</small>
+      <small>
+        <span ref={labelRef}>{label}</span>
+        <span ref={sayRef} className="station-say" hidden />
+      </small>
     </div>
   );
 }

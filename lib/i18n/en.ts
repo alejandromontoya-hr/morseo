@@ -55,6 +55,8 @@ const en = {
     eyebrow: "Personal station",
     personalStation: "THE LANGUAGE OF SIGNALS",
     received: "RECEIVED",
+    // What the emblem's little guy says in Morse now and then.
+    emblemWords: ["HI", "SOS", "OK", "BYE"],
     footer: "LISTEN & CONNECT",
     links: "About Morseo",
     linkedin: "Contact me on LinkedIn",
