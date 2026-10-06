@@ -21,9 +21,9 @@ const rest = faceShape(NEUTRAL);
  * aparato y abre la boca con cada tono. Pasar el puntero por encima lo hace
  * guiñar; un clic, sorprenderse. Con movimiento reducido se queda quieto.
  *
- * `variant="dock"` es su versión del celular: solo la cara, junto al
- * pulsador. Su globo va aparte, encima, con todo el ancho del panel: lo que
- * dice en morse lo escribe en `sayRef` y mientras habla esconde `idleRef`.
+ * `variant="dock"` es su versión del celular: solo la cara, arriba en el
+ * teclado morse. Su globo va aparte, a su lado: lo que dice en morse lo
+ * escribe en `sayRef` y mientras habla esconde `idleRef`.
  */
 export function StationEmblem({
   label = "",
@@ -86,11 +86,11 @@ export function StationEmblem({
       Object.assign(pointer, { x: e.clientX, y: e.clientY, seen: true, at: now });
     };
     // Hacia el aparato (el árbol o el panel del pulsador): ahí mira cuando suena.
-    // En el celular el aparato es el pulsador que tiene al lado.
+    // En el celular el aparato es el pulsador del teclado morse, debajo de él.
     const device = () => {
       const el =
         variant === "dock"
-          ? document.querySelector(".station-dock .pulsador")
+          ? document.querySelector(".morse-pad .pulsador")
           : document.querySelector(".station-side .board") ??
             document.querySelector(".station-side .station-panel") ??
             document.querySelector(".station-side");

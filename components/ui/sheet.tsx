@@ -6,15 +6,16 @@ import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * Hoja que sube desde abajo, para el celular: el árbol morse, los ajustes o el
- * canal. Se cierra con la X, tocando el fondo o con Escape; mientras está
- * abierta la página de atrás no se desplaza.
+ * Hoja que sube desde abajo, para el celular: los ajustes, el canal o, a
+ * pantalla completa, el árbol morse. Se cierra con la X, tocando el fondo o con
+ * Escape; mientras está abierta la página de atrás no se desplaza.
  */
 export function Sheet({
   open,
   onClose,
   title,
   hint,
+  head,
   closeLabel,
   dark = false,
   className,
@@ -24,6 +25,8 @@ export function Sheet({
   onClose: () => void;
   title: string;
   hint?: string;
+  /** Lo que se ve arriba en lugar del título (que queda para lectores de pantalla). */
+  head?: ReactNode;
   closeLabel: string;
   /** Grafito, como la placa del aparato. */
   dark?: boolean;
@@ -67,10 +70,17 @@ export function Sheet({
       >
         <span aria-hidden className="sheet-grip" />
         <header className="sheet-head">
-          <div>
-            <h2 id={titleId}>{title}</h2>
-            {hint && <p>{hint}</p>}
-          </div>
+          {head ? (
+            <>
+              <h2 id={titleId} className="sr-only">{title}</h2>
+              {head}
+            </>
+          ) : (
+            <div>
+              <h2 id={titleId}>{title}</h2>
+              {hint && <p>{hint}</p>}
+            </div>
+          )}
           <button ref={closeRef} type="button" className="sheet-close" aria-label={closeLabel} onClick={onClose}>
             <X aria-hidden />
           </button>

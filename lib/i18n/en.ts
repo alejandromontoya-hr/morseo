@@ -48,16 +48,25 @@ const en = {
     received: "RECEIVED",
     // What the emblem's little guy says in Morse now and then.
     emblemWords: ["HI", "SOS", "OK", "BYE"],
-    // Phone: the little guy's bubble next to the key, when nothing is playing.
-    dockIdle: {
-      translate: "Tap to key",
-      learn: "Which one was it?",
-      radio: "Key it on air",
+    // Phone: the Morse keyboard, which opens where the phone keyboard goes.
+    pad: {
+      label: "Morse keyboard",
+      open: "Key in Morse",
+      keyboard: "Keyboard",
+      keyboardAria: "Back to the phone keyboard",
+      // The little guy's bubble, when nothing is playing.
+      idle: {
+        translate: "Tap to key",
+        radio: "Key it on air",
+      },
+      tree: "Tree",
+      treeAria: "Open the Morse tree with the big key",
+      erase: "Delete",
+      eraseAria: "Delete the last letter",
+      dot: "Short tap · dot",
+      dash: "Hold · dash",
     },
-    treeShort: "Tree",
-    treeHint: "Tap a letter to hear its path",
     close: "Close",
-    backToKey: "Back to the key",
     more: "More options",
     settings: "Settings",
     theme: "Theme",
@@ -155,6 +164,12 @@ const en = {
     replay: "Hear it again",
     next: "Next letter",
     whichOne: "Which letter played? Tap it on the tree or key it.",
+    // Phone: the board's display, above the tree.
+    ask: "Which letter played?",
+    idleTitle: "Tap “Play a letter”",
+    idleLetters: (letters: string) => `Letters: ${letters}`,
+    answerWithKey: "Answer with the key",
+    scoreShort: (right: number, total: number) => `${right} of ${total}`,
     howTo:
       "Tap the letter on the tree, press it on your keyboard, or key it with the space bar.",
     howToTouch: "Tap the letter on the tree, or key it with the key.",
@@ -204,6 +219,9 @@ const en = {
     messageLabel: "Message",
     placeholder: "Type, or use the key",
     placeholderDirect: "Type and send with Enter",
+    placeholderPhone: "Write a message",
+    // Phone: the light next to the key on the Morse keyboard.
+    air: { on: "On air", busy: "Busy", free: "Free" },
     send: "Transmit",
     presence: (n: number) =>
       n <= 1 ? "Only you on this channel" : `${n} on this channel`,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Check, Play, RotateCcw, SkipForward, X } from "lucide-react";
+import { Check, Play, Radio, RotateCcw, SkipForward, X } from "lucide-react";
 
 import { isOnControl, isTyping } from "@/lib/dom";
 import { MORSE, REV } from "@/lib/morse";
@@ -10,9 +10,10 @@ import { TREE_LETTERS } from "@/lib/morse-tree";
 import { useI18n } from "@/lib/i18n/context";
 import { useBootSweep } from "@/lib/use-boot-sweep";
 import { useKeyer } from "@/lib/use-keyer";
+import { useIsMobile } from "@/lib/use-media";
 import { useMorsePlayer } from "@/lib/use-morse-player";
 import { Board } from "@/components/device/board";
-import { DockKey, KeyButton } from "@/components/device/key-button";
+import { KeyButton } from "@/components/device/key-button";
 import { MorseTree } from "@/components/device/morse-tree";
 import { DeviceLayout, FieldLabel } from "@/components/device-layout";
 import { MorseGlyphs } from "@/components/morse-glyphs";
@@ -50,6 +51,9 @@ export default function LearnApp({ about }: { about?: ReactNode }) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [picked, setPicked] = useState<string | null>(null);
   const [score, setScore] = useState({ right: 0, total: 0, streak: 0 });
+  // Celular: responder con la tecla abre el aparato a pantalla completa.
+  const [telegraph, setTelegraph] = useState(false);
+  const isMobile = useIsMobile();
   const nextTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const pool = useMemo(
@@ -186,8 +190,45 @@ export default function LearnApp({ about }: { about?: ReactNode }) {
     </p>
   );
 
+  // Lo que dice si acertó o no: en la pantalla del aparato en el celular, en la tarjeta en las demás.
+  const verdict =
+    phase === "right" ? l.right(target ?? "") : picked ? l.wrong(target ?? "", picked) : l.wrongUnknown(target ?? "");
+
+  // Celular: la parte de arriba del aparato hace de pantalla. Siempre tiene dos
+  // líneas, así el árbol no salta al responder.
+  const display = (
+    <div className="learn-display" aria-live="polite">
+      <p className="learn-display-main">
+        {answered && target ? (
+          <>
+            {phase === "right" ? <Check aria-hidden /> : <X aria-hidden />}
+            {verdict}
+          </>
+        ) : phase === "asking" ? (
+          l.ask
+        ) : (
+          l.idleTitle
+        )}
+      </p>
+      {score.total > 0 && <span className="learn-display-score">{l.scoreShort(score.right, score.total)}</span>}
+      <p className="learn-display-sub">
+        {answered && target ? (
+          <>
+            <MorseGlyphs morse={MORSE[target]} size={6} tone="led" />
+            {tip && <span><b>{l.trick}:</b> {tip}</span>}
+          </>
+        ) : phase === "asking" ? (
+          l.howToTouch
+        ) : (
+          l.idleLetters(pool.join(" "))
+        )}
+      </p>
+    </div>
+  );
+
   const board = (
     <Board>
+      {display}
       <MorseTree
         code={treeCode}
         pending={player.playing ? null : keyer.pending}
@@ -203,6 +244,7 @@ export default function LearnApp({ about }: { about?: ReactNode }) {
         words={t.device.words}
         ariaLabel={t.device.treeAria}
         nodeLabel={(n) => t.device.nodeLabel(n.letter, n.code)}
+        compact={isMobile}
       />
       <div className="mt-4">
         <KeyButton
@@ -221,78 +263,75 @@ export default function LearnApp({ about }: { about?: ReactNode }) {
     </Board>
   );
 
-  // Lo que dice si acertó o no: arriba en el celular, en la tarjeta en las demás.
-  const verdict =
-    phase === "right" ? l.right(target ?? "") : picked ? l.wrong(target ?? "", picked) : l.wrongUnknown(target ?? "");
+  // El paso siguiente del ejercicio: escuchar, oír de nuevo o pasar a la siguiente.
+  const step =
+    phase === "asking"
+      ? { icon: <RotateCcw />, label: l.replay, tip: t.tips.replay, run: replay }
+      : phase === "idle"
+        ? { icon: <Play />, label: l.start, tip: t.tips.start, run: ask }
+        : { icon: <SkipForward />, label: l.next, tip: t.tips.next, run: ask };
 
-  // Celular: los niveles en fichas y la respuesta encima del árbol, sin bajar.
-  const mobileTop = (
-    <>
-      <div role="group" aria-label={l.levelLabel} className="learn-chips">
-        {groups.map((g, i) => (
-          <button
-            key={g.title}
-            type="button"
-            aria-pressed={level === i + 1}
-            onClick={() => changeLevel(i + 1)}
-          >
-            {i + 1} · {g.chars.join(" ")}
+  // Celular: abajo, junto al pulgar, un solo botón que cambia y, a su lado,
+  // responder con la tecla (mientras pregunta) u oír de nuevo (ya respondida).
+  const mobileBar = (
+    <div className="learn-bar">
+      <Button variant="primary" className="learn-bar-main" onClick={step.run}>
+        {step.icon}
+        {step.label}
+      </Button>
+      {phase === "asking" && (
+        <Tooltip label={l.answerWithKey}>
+          <button type="button" className="station-round" aria-label={l.answerWithKey} onClick={() => setTelegraph(true)}>
+            <Radio aria-hidden />
           </button>
-        ))}
-      </div>
-      {phase === "idle" && (
-        <Button variant="primary" className="w-full" onClick={ask}>
-          <Play />
-          {l.start}
-        </Button>
+        </Tooltip>
       )}
-      {phase === "asking" && <p className="learn-ask">{l.whichOne}</p>}
-      {answered && target && (
-        <div className="learn-result" aria-live="polite">
-          <span className="learn-result-letter">{target}</span>
-          <div className="min-w-0 flex-1">
-            <p className="learn-result-title">
-              {phase === "right" ? <Check aria-hidden /> : <X aria-hidden />}
-              {verdict}
-            </p>
-            <p className="learn-result-sub">
-              <MorseGlyphs morse={MORSE[target]} size={7} tone="led" />
-              {l.score(score.right, score.total)}
-            </p>
-          </div>
-          <Tooltip label={t.tips.next}>
-            <Button variant="primary" onClick={ask}>
-              <SkipForward />
-              {l.next}
-            </Button>
-          </Tooltip>
-        </div>
+      {answered && (
+        <Tooltip label={t.tips.replay}>
+          <button type="button" className="station-round" aria-label={l.replay} onClick={replay}>
+            <RotateCcw aria-hidden />
+          </button>
+        </Tooltip>
       )}
-    </>
+    </div>
+  );
+
+  // Celular: los niveles en fichas, encima del aparato.
+  const mobileTop = (
+    <div role="group" aria-label={l.levelLabel} className="learn-chips">
+      {groups.map((g, i) => (
+        <button
+          key={g.title}
+          type="button"
+          aria-pressed={level === i + 1}
+          onClick={() => changeLevel(i + 1)}
+        >
+          {i + 1} · {g.chars.join(" ")}
+        </button>
+      ))}
+    </div>
   );
 
   return (
     <DeviceLayout mode="learn" title={l.title} lead={l.lead} board={board} about={about}
       mobileTop={mobileTop}
-      dockKey={<DockKey keyer={keyer} ariaLabel={t.device.keyAria} tip={t.tips.key} />}
-      dockReadout={
-        liveCode ? (
-          <>
-            <MorseGlyphs morse={liveCode} size={8} />
-            {liveLetter && <b>{liveLetter}</b>}
-          </>
-        ) : undefined
-      }
-      dockAction={
-        phase !== "idle" ? (
-          <Tooltip label={t.tips.replay}>
-            <button type="button" className="station-dock-btn" onClick={replay}>
-              <span><RotateCcw aria-hidden /></span>
-              {l.replay}
+      mobileBar={mobileBar}
+      telegraph={{
+        open: telegraph,
+        onOpenChange: (open) => {
+          keyer.reset();
+          setTelegraph(open);
+        },
+        // Responder con la tecla: arriba la pregunta (o el resultado) y el paso siguiente
+        top: (
+          <div className="telegraph-learn">
+            <div className="telegraph-msg telegraph-text">{answered && target ? verdict : l.ask}</div>
+            <button type="button" className="telegraph-step" aria-label={step.label} onClick={step.run}>
+              {step.icon}
             </button>
-          </Tooltip>
-        ) : undefined
-      }
+          </div>
+        ),
+      }}
       mobileAction={<Tooltip label={phase === "asking" ? t.tips.replay : phase === "idle" ? t.tips.start : t.tips.next}><Button variant="primary" onClick={phase === "asking" ? replay : ask}>
         {phase === "asking" ? <RotateCcw /> : <Play />}
         {phase === "asking" ? l.replay : phase === "idle" ? l.start : l.next}

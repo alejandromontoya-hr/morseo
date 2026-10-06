@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { ChevronDown, Dices, RotateCcw, Send, Volume2 } from "lucide-react";
+import { ChevronDown, Dices, Radio, RotateCcw, Send, Volume2 } from "lucide-react";
 
 import { randomCallsign } from "@/lib/callsign";
 import { isOnControl, isTyping } from "@/lib/dom";
@@ -13,7 +13,8 @@ import { useMorsePlayer } from "@/lib/use-morse-player";
 import { useIsMobile } from "@/lib/use-media";
 import { Board, StatusLed } from "@/components/device/board";
 import { HandKey } from "@/components/device/hand-key";
-import { DockKey, KeyButton } from "@/components/device/key-button";
+import { KeyButton, PadKey } from "@/components/device/key-button";
+import { PadLight } from "@/components/device/morse-pad";
 import { MorseTree } from "@/components/device/morse-tree";
 import { DeviceLayout, FieldLabel, type DeviceView } from "@/components/device-layout";
 import { MorseGlyphs } from "@/components/morse-glyphs";
@@ -124,8 +125,12 @@ export default function RadioApp({ about }: { about?: ReactNode }) {
   // letra a letra (como «Directo»).
   const isMobile = useIsMobile();
   const mode: TxMode = isMobile ? "direct" : txMode;
-  // Celular: la hoja para cambiar de canal o de nombre.
+  // Celular: la hoja para cambiar de canal o de nombre, el teclado morse (en
+  // lugar del teclado) y el árbol a pantalla completa.
   const [setupOpen, setSetupOpen] = useState(false);
+  const [padOpen, setPadOpen] = useState(false);
+  const [telegraph, setTelegraph] = useState(false);
+  const barInputRef = useRef<HTMLInputElement>(null);
   // Turno de palabra: quién tiene el canal (lo avisa el servidor) y, si
   // agotaste tu turno, hasta cuándo descansas.
   const [floor, setFloor] = useState<Floor | null>(null);
@@ -469,21 +474,24 @@ export default function RadioApp({ about }: { about?: ReactNode }) {
     </>
   );
 
-  // Escribir y Transmitir: en la tarjeta y, en el celular, en el panel de abajo.
-  const compose = (id: string) => (
+  // Escribir y Transmitir: en la tarjeta y, en el celular, en la fila de abajo.
+  const compose = (id: string, phone = false) => (
     <div className="flex gap-2">
       <input
         id={id}
+        ref={phone ? barInputRef : undefined}
         aria-label={r.messageLabel}
         value={text}
         maxLength={MAX_LEN}
         autoComplete="off"
-        placeholder={mode === "direct" ? r.placeholderDirect : r.placeholder}
+        enterKeyHint={phone ? "send" : undefined}
+        placeholder={phone ? r.placeholderPhone : mode === "direct" ? r.placeholderDirect : r.placeholder}
         onChange={(e) => {
           // Si lo reescribes a mano, ya no es un mensaje hecho con la tecla.
           keyedRef.current = false;
           setText(e.target.value);
         }}
+        onFocus={phone ? () => setPadOpen(false) : undefined}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             e.preventDefault();
@@ -504,7 +512,13 @@ export default function RadioApp({ about }: { about?: ReactNode }) {
                 : t.tips.needMessage
         }
       >
-        <Button variant="primary" onClick={transmit} disabled={!encode(text) || busy || resting}>
+        <Button
+          variant="primary"
+          className="radio-send"
+          aria-label={phone ? r.send : undefined}
+          onClick={transmit}
+          disabled={!encode(text) || busy || resting}
+        >
           <Send />
           {r.send}
         </Button>
@@ -512,14 +526,30 @@ export default function RadioApp({ about }: { about?: ReactNode }) {
     </div>
   );
 
-  // Celular: el canal en una ficha; tocarla abre la hoja con canal e indicativo.
+  // Celular: el teclado morse reemplaza al del celular; al abrirlo se cierra el otro.
+  function openPad() {
+    (document.activeElement as HTMLElement | null)?.blur();
+    setPadOpen(true);
+  }
+
+  // «Teclado»: el foco en la fila de escribir abre el teclado del celular (y cierra este).
+  function backToKeyboard() {
+    keyer.reset();
+    barInputRef.current?.focus();
+    setPadOpen(false);
+  }
+
+  // Celular: el canal en una ficha con todo su estado (conexión, nombre y
+  // cuántos escuchan); tocarla abre la hoja con canal e indicativo.
   const mobileTop = (
     <>
       <button type="button" className="radio-channel-chip" aria-label={r.changeChannel} onClick={() => setSetupOpen(true)}>
         <OnAirIcon state={link} />
         <span>
-          <b>{r.channelLabel} {channel} · {callsign}</b>
-          <small>{r.channels[channel - 1]}</small>
+          <b>{r.channelLabel} {channel} · {r.channels[channel - 1]}</b>
+          <small>
+            {callsign} · {link === "open" ? r.presence(presence.count) : link === "tuning" ? r.tuning : r.offline}
+          </small>
         </span>
         <ChevronDown aria-hidden />
       </button>
@@ -529,21 +559,68 @@ export default function RadioApp({ about }: { about?: ReactNode }) {
     </>
   );
 
+  // Celular: abajo, como en un chat, el botón del teclado morse y la fila para escribir.
+  const mobileBar = (
+    <div className="radio-bar">
+      <Tooltip label={t.station.pad.open}>
+        <button type="button" className="station-round station-round-lime" aria-label={t.station.pad.open} onClick={openPad}>
+          <Radio aria-hidden />
+        </button>
+      </Tooltip>
+      {compose("radio-message-bar", true)}
+    </div>
+  );
+
+  const ownFloor = !!floor && floor.from === clientId;
+  const latest = messages[0];
+
   return (
     <DeviceLayout mode="radio" title={r.title} lead={r.lead} board={board} about={about}
       mobileTop={mobileTop}
-      dockComposer={compose("radio-message-dock")}
-      dockKey={<DockKey keyer={keyer} disabled={keyLocked} ariaLabel={t.device.keyAria} tip={t.tips.key} />}
-      dockReadout={
-        keyLocked ? (
+      mobileBar={mobileBar}
+      pad={{
+        open: padOpen,
+        onKeyboard: backToKeyboard,
+        idle: t.station.pad.idle.radio,
+        keyEl: <PadKey keyer={keyer} disabled={keyLocked} ariaLabel={t.device.keyAria} tip={t.tips.key} />,
+        readout: keyLocked ? (
           busy ? r.busyShort : r.restShort
         ) : liveCode ? (
           <>
             <MorseGlyphs morse={liveCode} size={8} />
             {liveLetter && <b>{liveLetter}</b>}
           </>
-        ) : undefined
-      }
+        ) : undefined,
+        side:
+          txActive || ownFloor ? (
+            <PadLight state="on" label={r.air.on} />
+          ) : busy || resting ? (
+            <PadLight state="busy" label={r.air.busy} />
+          ) : (
+            <PadLight state="free" label={r.air.free} />
+          ),
+      }}
+      telegraph={{
+        open: telegraph,
+        onOpenChange: (open) => {
+          keyer.reset();
+          if (open) setSweep((s) => s + 1);
+          setTelegraph(open);
+        },
+        // Lo último que llegó, para no perder la conversación mientras tecleas en el árbol
+        top: (
+          <div className="telegraph-msg">
+            {latest ? (
+              <>
+                <small>{latest.user || r.operator}</small>
+                {latest.text}
+              </>
+            ) : (
+              <span>{r.channelLabel} {channel} · {r.channels[channel - 1]}</span>
+            )}
+          </div>
+        ),
+      }}
       hand={
         <HandKey
           keyer={keyer}
@@ -561,8 +638,9 @@ export default function RadioApp({ about }: { about?: ReactNode }) {
         setView(v);
       }}
     >
-      <div className="flex min-h-11 flex-wrap items-center gap-x-4 gap-y-2">
-        <p className="flex items-center gap-2.5 text-[15px]" aria-live="polite">
+      {/* En el celular el estado va en la ficha del canal; aquí quedan los avisos */}
+      <div className="radio-status-row flex min-h-11 flex-wrap items-center gap-x-4 gap-y-2">
+        <p className="radio-status flex items-center gap-2.5 text-[15px]" aria-live="polite">
           <OnAirIcon state={link} />
           <span className="font-semibold">
             {link === "open" ? r.listening : link === "tuning" ? r.tuning : r.offline}
@@ -590,7 +668,7 @@ export default function RadioApp({ about }: { about?: ReactNode }) {
         )}
       </div>
       {connected && others.length > 0 && (
-        <p className="mt-2 text-[15px] text-muted">
+        <p className="radio-others mt-2 text-[15px] text-muted">
           {others.map((u) => u.user || r.operator).join(", ")}
         </p>
       )}
@@ -618,7 +696,7 @@ export default function RadioApp({ about }: { about?: ReactNode }) {
         {compose("radio-message")}
       </div>
 
-      <section className="mt-9">
+      <section className="radio-feed mt-9">
         <h2 className="text-[15px] font-semibold">{r.feedLabel}</h2>
         {messages.length === 0 ? (
           <p className="mt-2 max-w-[48ch] text-[15px] leading-snug text-muted">{r.feedEmpty}</p>
@@ -639,7 +717,7 @@ export default function RadioApp({ about }: { about?: ReactNode }) {
                       </span>
                     </div>
                     {m.text && (
-                      <p className="mt-0.5 text-[18px] font-semibold tracking-[.05em] break-words uppercase">
+                      <p className="radio-feed-text mt-0.5 text-[18px] font-semibold tracking-[.05em] break-words uppercase">
                         {m.text}
                       </p>
                     )}
@@ -668,7 +746,7 @@ export default function RadioApp({ about }: { about?: ReactNode }) {
         )}
       </section>
 
-      <p className="mt-9 max-w-[56ch] text-sm leading-snug text-muted">{r.serverNote}</p>
+      <p className="radio-note mt-9 max-w-[56ch] text-sm leading-snug text-muted">{r.serverNote}</p>
     </DeviceLayout>
   );
 }
