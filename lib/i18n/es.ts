@@ -57,6 +57,8 @@ const es: Dict = {
     eyebrow: "Estación personal",
     personalStation: "EL LENGUAJE DE LAS SEÑALES",
     received: "RECIBIDO",
+    // Lo que el muñeco del emblema dice en morse de vez en cuando.
+    emblemWords: ["HOLA", "SOS", "OK", "CHAO"],
     footer: "ESCUCHAR Y CONECTAR",
     links: "Sobre Morseo",
     linkedin: "Contáctame en LinkedIn",

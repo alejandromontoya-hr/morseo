@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { toneNow } from "@/lib/tone";
+
 type Player = {
   osc: OscillatorNode;
   gain: GainNode;
@@ -24,7 +26,8 @@ export function useMorseAudio() {
   const clipOscRef = useRef<OscillatorNode | null>(null);
   const beepRef = useRef<{ osc: OscillatorNode; gain: GainNode } | null>(null);
   const speedRef = useRef(8);
-  // true mientras suena un tono (reproducción o tecla): alimenta la línea de señal.
+  // true mientras suena un tono (reproducción o tecla): alimenta la línea de
+  // señal y, por `toneNow`, al muñeco del emblema.
   const toneOnRef = useRef(false);
 
   const [playing, setPlaying] = useState(false);
@@ -87,7 +90,7 @@ export function useMorseAudio() {
       } catch {}
       playerRef.current = null;
     }
-    toneOnRef.current = false;
+    toneOnRef.current = toneNow.on = false;
     setActiveIdx(null);
     setPlaying(false);
   }, []);
@@ -134,7 +137,7 @@ export function useMorseAudio() {
       const step = () => {
         if (player.cancelled) return;
         if (player.i >= steps.length) {
-          toneOnRef.current = false;
+          toneOnRef.current = toneNow.on = false;
           setActiveIdx(null);
           try {
             osc.stop();
@@ -156,11 +159,11 @@ export function useMorseAudio() {
           );
           gain.gain.setValueAtTime(0.3, now + Math.max(0.007, d - 0.006));
           gain.gain.exponentialRampToValueAtTime(0.0001, now + d);
-          toneOnRef.current = true;
+          toneOnRef.current = toneNow.on = true;
           setActiveIdx(st.idx ?? null);
         } else {
           gain.gain.setValueAtTime(0.0001, now);
-          toneOnRef.current = false;
+          toneOnRef.current = toneNow.on = false;
           setActiveIdx(null);
         }
         player.timer = setTimeout(step, d * 1000);
@@ -226,12 +229,12 @@ export function useMorseAudio() {
     gain.gain.setValueAtTime(0.0001, n);
     gain.gain.exponentialRampToValueAtTime(0.3, n + 0.006);
     osc.start();
-    toneOnRef.current = true;
+    toneOnRef.current = toneNow.on = true;
     beepRef.current = { osc, gain };
   }, [ctx, wake]);
 
   const beepOff = useCallback(() => {
-    toneOnRef.current = false;
+    toneOnRef.current = toneNow.on = false;
     const b = beepRef.current;
     if (!b) return;
     const n = ctx().currentTime;
@@ -244,6 +247,7 @@ export function useMorseAudio() {
 
   useEffect(
     () => () => {
+      toneNow.on = false;
       const p = playerRef.current;
       if (p) {
         p.cancelled = true;

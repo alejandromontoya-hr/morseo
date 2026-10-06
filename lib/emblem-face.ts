@@ -2,11 +2,13 @@
  * El muñeco del emblema: los dos puntos son los ojos y la raya es la boca.
  * Quieto es la R en morse (· — ·); cuando lo miras, cobra vida.
  *
- * Todo sale de una función de cuadro: en cada cuadro recibe la hora y hacia
- * dónde está el puntero, y devuelve la pose de la cara. No hay animaciones
- * CSS: los parpadeos, las sorpresas, los guiños y los ratos de pensar se
- * deciden aquí con sus propios relojes.
+ * Todo sale de una función de cuadro: en cada cuadro recibe la hora, hacia
+ * dónde está el puntero y si suena morse, y devuelve la pose de la cara. No
+ * hay animaciones CSS: los parpadeos, las sorpresas, los guiños, los ratos de
+ * pensar y las palabras que dice en morse se deciden aquí con sus relojes.
  */
+
+import { encode } from "@/lib/morse";
 
 /** La cara en un instante, en unidades del disco (radio 50, centro en 0,0). */
 export type Pose = {
@@ -44,9 +46,14 @@ export type FaceInput = {
   lookY: number;
   /** Milisegundos desde que el puntero se movió por última vez. */
   idleMs: number;
+  /** Suena un tono de morse: alguien teclea, toca el árbol o suena un mensaje. */
+  tone: boolean;
+  /** Hacia dónde está el aparato, de -1 a 1: lo mira mientras suena. */
+  deviceX: number;
+  deviceY: number;
 };
 
-export type Mood = "surprise" | "think" | "wink";
+export type Mood = "surprise" | "think" | "wink" | "talk";
 
 /** Quieto: la R en morse, con las medidas del emblema original. */
 export const NEUTRAL: Pose = {
@@ -74,19 +81,69 @@ const MOUTH_TRAVEL = { x: 5, y: 4 };
 const BLINK_MS = 170;
 // Sin mover el puntero un rato, se aburre y mira por su cuenta.
 const BORED_MS = 2500;
+// Tras el último tono sigue atento al aparato este rato antes de volver.
+const LISTEN_MS = 900;
 
 /** Cuánto dura cada gesto, cuánto tarda en llegar y en irse (ms). */
 const MOODS: Record<Mood, { dur: number; attack: number; release: number }> = {
   surprise: { dur: 1300, attack: 90, release: 320 },
   think: { dur: 2800, attack: 260, release: 380 },
   wink: { dur: 750, attack: 110, release: 220 },
+  // Lo que dura hablar depende de la palabra (ver sayWord).
+  talk: { dur: 0, attack: 150, release: 250 },
 };
+
+// Al hablar dice una palabra en morse a 14 PPM, en silencio: la boca se abre
+// con cada punto y raya, y el letrero la va escribiendo.
+const TALK_UNIT_MS = 1200 / 14;
+const TALK_HOLD_MS = 600;
+const TALK_WORD_MS = 1800;
+
+type Talk = {
+  word: string;
+  /** El morse con puntos y rayas legibles: «••• −−− •••». */
+  text: string;
+  /** Cada símbolo: cuándo suena, cuándo calla y hasta dónde va escrito. */
+  marks: { at: number; end: number; upto: number }[];
+  spokenEnd: number;
+  dur: number;
+};
+
+/** Arma el guion de una palabra: tiempos de cada símbolo y lo que se escribe. */
+function sayWord(word: string): Talk {
+  const letters = encode(word).split(" ").filter((c) => c && c !== "/");
+  const marks: Talk["marks"] = [];
+  let t = 200;
+  let text = "";
+  letters.forEach((code, li) => {
+    if (li) {
+      text += " ";
+      t += 2 * TALK_UNIT_MS; // con el silencio que ya trae el símbolo, son 3
+    }
+    for (const s of code) {
+      const len = s === "-" ? 3 : 1;
+      text += s === "-" ? "−" : "•";
+      marks.push({ at: t, end: t + len * TALK_UNIT_MS, upto: text.length });
+      t += (len + 1) * TALK_UNIT_MS;
+    }
+  });
+  return { word, text, marks, spokenEnd: t, dur: t + TALK_HOLD_MS + TALK_WORD_MS };
+}
+
+/** Lo que dice el letrero a los `t` ms de empezar a hablar (null: aún nada). */
+function captionAt(talk: Talk, t: number): string | null {
+  if (t >= talk.spokenEnd + TALK_HOLD_MS) return talk.word;
+  let upto = 0;
+  for (const m of talk.marks) if (m.at <= t) upto = m.upto;
+  return upto ? talk.text.slice(0, upto) : null;
+}
 
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const smooth = (t: number) => t * t * (3 - 2 * t);
 
-export function createFace(random: () => number = Math.random) {
+/** `words`: lo que puede decir en morse cuando le da por hablar. */
+export function createFace(random: () => number = Math.random, words: string[] = ["SOS"]) {
   const between = (a: number, b: number) => a + (b - a) * random();
 
   let started = false;
@@ -94,15 +151,21 @@ export function createFace(random: () => number = Math.random) {
   const look = { x: 0, y: 0 };
   let blinkStart = -Infinity;
   let nextBlink = 0;
-  let mood: { kind: Mood; start: number; side: number } | null = null;
+  let mood: { kind: Mood; start: number; side: number; talk?: Talk } | null = null;
   let nextMood = 0;
   const wander = { x: 0, y: 0 };
   let nextWander = 0;
+  // Cuánto tiene la boca abierta por un tono (0 a 1) y cuánto mira al aparato.
+  let voice = 0;
+  let attention = 0;
+  let lastTone = -Infinity;
+  let caption: string | null = null;
 
   /** Lanza un gesto si no hay otro en curso. `side`: -1 izquierda, 1 derecha. */
   function trigger(kind: Mood, now: number, side?: number): boolean {
     if (mood) return false;
     mood = { kind, start: now, side: side ?? (random() < 0.5 ? -1 : 1) };
+    if (kind === "talk") mood.talk = sayWord(words[Math.floor(random() * words.length)] ?? "SOS");
     return true;
   }
 
@@ -117,25 +180,44 @@ export function createFace(random: () => number = Math.random) {
     last = now;
     const bored = input.idleMs > BORED_MS;
 
+    // Cuando suena morse deja lo que estaba haciendo y escucha.
+    if (input.tone) lastTone = now;
+    const listening = now - lastTone < LISTEN_MS;
+    if (listening && mood) {
+      mood = null;
+      nextMood = now + between(5500, 12000);
+    }
+
     // Gestos sueltos: aburrido, lo más probable es que se ponga a pensar.
-    if (!mood && now >= nextMood) {
+    if (!mood && !listening && now >= nextMood) {
       const r = random();
       const kind: Mood = bored
-        ? r < 0.6 ? "think" : r < 0.8 ? "wink" : "surprise"
-        : r < 0.4 ? "wink" : r < 0.75 ? "think" : "surprise";
+        ? r < 0.45 ? "think" : r < 0.65 ? "talk" : r < 0.82 ? "wink" : "surprise"
+        : r < 0.3 ? "wink" : r < 0.55 ? "think" : r < 0.8 ? "talk" : "surprise";
       trigger(kind, now, input.lookX ? Math.sign(input.lookX) : undefined);
     }
     let w = 0;
+    let talking = false;
+    caption = null;
     if (mood) {
       const m = MOODS[mood.kind];
+      const dur = mood.talk?.dur ?? m.dur;
       const t = now - mood.start;
-      if (t >= m.dur) {
+      if (t >= dur) {
         mood = null;
         nextMood = now + between(5500, 12000);
       } else {
-        w = smooth(Math.min(clamp01(t / m.attack), clamp01((m.dur - t) / m.release)));
+        w = smooth(Math.min(clamp01(t / m.attack), clamp01((dur - t) / m.release)));
+        if (mood.talk) {
+          caption = captionAt(mood.talk, t);
+          talking = mood.talk.marks.some((s) => s.at <= t && t < s.end);
+        }
       }
     }
+    // La boca se abre rápido con cada tono, suyo o del aparato, y cierra igual.
+    voice += ((input.tone || talking ? 1 : 0) - voice) * (1 - Math.exp(-dt * 40));
+    // Voltea al aparato en seguida y vuelve despacio.
+    attention += ((listening ? 1 : 0) - attention) * (1 - Math.exp(-dt * (listening ? 14 : 4)));
 
     // A dónde mirar: al puntero, o por aquí y por allá si se aburrió.
     let tx = input.lookX;
@@ -153,9 +235,15 @@ export function createFace(random: () => number = Math.random) {
       // Mira arriba, a un lado, y los ojos van y vienen mientras piensa.
       tx = lerp(tx, mood.side * 0.75 + Math.sin(now / 480) * 0.12, w);
       ty = lerp(ty, -0.9, w);
+    } else if (mood?.kind === "talk") {
+      // Habla mirando de frente, a quien lo ve.
+      tx = lerp(tx, 0, w);
+      ty = lerp(ty, -0.1, w);
     }
+    tx = lerp(tx, input.deviceX, attention);
+    ty = lerp(ty, input.deviceY, attention);
     // Las sacadas de un ojo aburrido son rápidas; seguir el puntero, suave.
-    const k = 1 - Math.exp(-dt * (bored ? 16 : 11));
+    const k = 1 - Math.exp(-dt * (bored || listening ? 16 : 11));
     look.x += (tx - look.x) * k;
     look.y += (ty - look.y) * k;
 
@@ -189,9 +277,18 @@ export function createFace(random: () => number = Math.random) {
       }
     }
 
+    // Atento al aparato abre un poco los ojos; con cada tono, la raya se vuelve
+    // una «o», como si cantara el morse.
+    p.eyeR = lerp(p.eyeR, 6.6, attention);
+    p.mouthW = lerp(p.mouthW, 0.01, voice);
+    p.mouthH = lerp(p.mouthH, 11, voice);
+    p.mouthY = lerp(p.mouthY, 5, voice);
+    p.mouthX = lerp(p.mouthX, 0, voice);
+    p.mouthTilt = lerp(p.mouthTilt, 0, voice);
+
     // Parpadeo: nunca a mitad de una sorpresa o un guiño; espera a que pasen.
     if (now >= nextBlink) {
-      if (mood && mood.kind !== "think") nextBlink = now + 300;
+      if (mood && mood.kind !== "think" && mood.kind !== "talk") nextBlink = now + 300;
       else {
         blinkStart = now;
         // A veces parpadea dos veces seguidas.
@@ -210,7 +307,10 @@ export function createFace(random: () => number = Math.random) {
     return p;
   }
 
-  return { frame, trigger };
+  /** Lo que escribe en su letrero ahora mismo; null: el letrero de siempre. */
+  const say = () => caption;
+
+  return { frame, trigger, say };
 }
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
