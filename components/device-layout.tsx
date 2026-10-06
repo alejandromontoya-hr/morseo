@@ -4,6 +4,8 @@ import { type ReactNode } from "react";
 import { CircleDot, Network, Radio } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 import { Segmented } from "@/components/ui/segmented";
+import { StationEmblem } from "@/components/station-emblem";
+import { GitHubMark, LINKEDIN_URL, LinkedInMark, REPO_URL } from "@/components/github-link";
 
 export type DeviceView = "key" | "tree";
 
@@ -47,7 +49,7 @@ export function DeviceLayout({
           <h1>{heading[0]} <span>{heading[1]}</span></h1>
           <p className="station-lead">{lead}</p>
         </div>
-        <div className="station-emblem" aria-hidden><span /><i /><i /><i /><small>R / {t.station.received}</small></div>
+        <StationEmblem label={`R / ${t.station.received}`} />
       </header>
       <div className="station-toolbar">
         <span className="station-section-label"><Radio aria-hidden />{title}</span>
@@ -96,7 +98,20 @@ export function DeviceLayout({
           </div>
         </div>
       </div>
-      <footer className="station-footer"><span>MORSEO · {t.station.footer}</span><span>· − ·</span></footer>
+      <footer className="station-footer">
+        <span>MORSEO · {t.station.footer}</span>
+        {/* Solo los logos: quien los conoce sabe a dónde llevan; el nombre va para lectores de pantalla */}
+        <nav aria-label={t.station.links}>
+          <a href={REPO_URL} target="_blank" rel="noopener noreferrer" aria-label={t.nav.repo} title={t.nav.repo}>
+            <GitHubMark />
+          </a>
+          {LINKEDIN_URL && (
+            <a href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer" aria-label={t.station.linkedin} title={t.station.linkedin}>
+              <LinkedInMark />
+            </a>
+          )}
+        </nav>
+      </footer>
     </div>
   );
 }

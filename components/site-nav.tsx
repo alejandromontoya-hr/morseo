@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/context";
 import { ModeToggle } from "@/components/mode-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
+import { GitHubButton } from "@/components/github-link";
 
 export function Logo({ className }: { className?: string }) {
   return <span aria-hidden className={cn("station-logo", className)}><i /><i /><i /></span>;
@@ -30,7 +31,7 @@ export function SiteNav() {
           <Icon aria-hidden /><span>{label}</span>
         </Link>)}
       </nav>
-      <div className="station-preferences"><LanguageToggle /><ModeToggle /></div>
+      <div className="station-preferences"><GitHubButton label={t.nav.repo} /><LanguageToggle /><ModeToggle /></div>
       <span className="station-sidebar-foot"><i aria-hidden />{t.station.footer}</span>
     </header>
     <nav aria-label={t.nav.main} className="station-mobile-nav">

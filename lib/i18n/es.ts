@@ -22,6 +22,7 @@ const es: Dict = {
     radio: "Al aire",
     home: "Morseo, inicio",
     main: "Principal",
+    repo: "Ver el código en GitHub",
   },
 
   station: {
@@ -29,6 +30,8 @@ const es: Dict = {
     personalStation: "EL LENGUAJE DE LAS SEÑALES",
     received: "RECIBIDO",
     footer: "ESCUCHAR Y CONECTAR",
+    links: "Sobre Morseo",
+    linkedin: "Contáctame en LinkedIn",
     headings: {
       translate: ["Tu estación.", "Tu señal."],
       learn: ["Entrena la", "recepción."],
