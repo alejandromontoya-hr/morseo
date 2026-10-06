@@ -18,6 +18,7 @@ import { DeviceLayout, FieldLabel, type DeviceView } from "@/components/device-l
 import { MorseGlyphs } from "@/components/morse-glyphs";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { Tooltip } from "@/components/ui/tooltip";
 import { OnAirIcon } from "@/components/on-air-icon";
 
 type Msg = {
@@ -338,8 +339,8 @@ export default function RadioApp() {
   const board = (
     <Board>
       <div className="flex items-center gap-5 px-1">
-        <StatusLed label={t.device.pwr} on={connected} />
-        <StatusLed label={t.device.rx} on={rxPlaying} />
+        <StatusLed label={t.device.pwr} on={connected} tip={t.tips.pwr} />
+        <StatusLed label={t.device.rx} on={rxPlaying} tip={t.tips.rx} />
       </div>
       <MorseTree
         className="mt-3"
@@ -362,6 +363,8 @@ export default function RadioApp() {
           shortLabel={t.device.short}
           longLabel={t.device.long}
           txLabel={t.device.tx}
+          keyTip={t.tips.key}
+          txTip={t.tips.tx}
         />
       </div>
     </Board>
@@ -373,6 +376,7 @@ export default function RadioApp() {
         <HandKey
           keyer={keyer}
           ariaLabel={t.device.keyAria}
+          tip={t.tips.key}
           {...t.station.hand}
         />
       }
@@ -394,10 +398,12 @@ export default function RadioApp() {
         {/* El navegador calla el audio hasta un toque: lo que llega ya pasa por
             la lista y el árbol, y con este toque (o cualquier otro) se oye. */}
         {player.audio.blocked && (
-          <Button variant="primary" size="sm" onClick={player.audio.unlock}>
-            <Volume2 />
-            {r.soundBlocked}
-          </Button>
+          <Tooltip label={t.tips.soundBlocked}>
+            <Button variant="primary" size="sm" onClick={player.audio.unlock}>
+              <Volume2 />
+              {r.soundBlocked}
+            </Button>
+          </Tooltip>
         )}
       </div>
       {connected && others.length > 0 && (
@@ -433,15 +439,16 @@ export default function RadioApp() {
               onChange={(e) => setCallsignInput(e.target.value)}
               className={inputClass}
             />
-            <Button
-              size="icon"
-              className="size-11"
-              aria-label={r.newCallsign}
-              title={r.newCallsign}
-              onClick={() => setCallsignInput(randomCallsign())}
-            >
-              <Dices />
-            </Button>
+            <Tooltip label={t.tips.newCallsign}>
+              <Button
+                size="icon"
+                className="size-11"
+                aria-label={r.newCallsign}
+                onClick={() => setCallsignInput(randomCallsign())}
+              >
+                <Dices />
+              </Button>
+            </Tooltip>
           </div>
         </div>
       </div>
@@ -491,10 +498,12 @@ export default function RadioApp() {
             }}
             className={inputClass}
           />
-          <Button variant="primary" onClick={transmit} disabled={!encode(text)}>
-            <Send />
-            {r.send}
-          </Button>
+          <Tooltip label={t.tips.transmit} disabledLabel={text.trim() ? t.tips.noMorse : t.tips.needMessage}>
+            <Button variant="primary" onClick={transmit} disabled={!encode(text)}>
+              <Send />
+              {r.send}
+            </Button>
+          </Tooltip>
         </div>
       </div>
 
@@ -531,15 +540,16 @@ export default function RadioApp() {
                       active={playingThis && !m.tx ? player.letterIdx : null}
                     />
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label={r.replay}
-                    title={r.replay}
-                    onClick={() => play(m.morse, { id: m.id, wpm: m.wpm })}
-                  >
-                    <RotateCcw />
-                  </Button>
+                  <Tooltip label={t.tips.replayMessage}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={r.replay}
+                      onClick={() => play(m.morse, { id: m.id, wpm: m.wpm })}
+                    >
+                      <RotateCcw />
+                    </Button>
+                  </Tooltip>
                 </li>
               );
             })}

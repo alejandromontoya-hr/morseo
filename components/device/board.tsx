@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
+import { Tooltip } from "@/components/ui/tooltip";
 
 /**
  * La placa de circuito que contiene el aparato (árbol y pulsador).
@@ -30,20 +31,25 @@ export function StatusLed({
   label,
   on,
   color = "dot",
+  tip,
 }: {
   label: string;
   on: boolean;
   color?: "dot" | "dash";
+  /** Qué significa la sigla (PWR, RX, TX), en palabras. */
+  tip?: string;
 }) {
   return (
-    <span className="inline-flex items-center gap-1.5">
-      <span
-        aria-hidden
-        className="led-sm"
-        data-on={on}
-        style={{ "--led": `var(--${color})` } as CSSProperties}
-      />
-      <span className="silk text-[10px]">{label}</span>
-    </span>
+    <Tooltip label={tip}>
+      <span className="inline-flex items-center gap-1.5">
+        <span
+          aria-hidden
+          className="led-sm"
+          data-on={on}
+          style={{ "--led": `var(--${color})` } as CSSProperties}
+        />
+        <span className="silk text-[10px]">{label}</span>
+      </span>
+    </Tooltip>
   );
 }

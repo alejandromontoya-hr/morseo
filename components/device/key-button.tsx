@@ -6,6 +6,7 @@ import { Radio } from "lucide-react";
 import type { Keyer } from "@/lib/use-keyer";
 import { StatusLed } from "@/components/device/board";
 import { MorseGlyphs } from "@/components/morse-glyphs";
+import { Tooltip } from "@/components/ui/tooltip";
 
 /**
  * Lo que convierte un botón en tecla: baja al tocarlo y sube al soltarlo.
@@ -59,6 +60,8 @@ export function KeyButton({
   shortLabel,
   longLabel,
   txLabel,
+  keyTip,
+  txTip,
 }: {
   keyer: Keyer;
   disabled?: boolean;
@@ -75,18 +78,23 @@ export function KeyButton({
   shortLabel: string;
   longLabel: string;
   txLabel: string;
+  /** Cómo se teclea, para el globito del pulsador (solo con mouse). */
+  keyTip?: string;
+  txTip?: string;
 }) {
   return (
     <div className="flex flex-col items-center">
-      <button
-        type="button"
-        className="pulsador"
-        disabled={disabled}
-        aria-label={ariaLabel}
-        {...keyHandlers(keyer, disabled)}
-      >
-        <Radio aria-hidden />
-      </button>
+      <Tooltip label={keyTip} touch={false}>
+        <button
+          type="button"
+          className="pulsador"
+          disabled={disabled}
+          aria-label={ariaLabel}
+          {...keyHandlers(keyer, disabled)}
+        >
+          <Radio aria-hidden />
+        </button>
+      </Tooltip>
 
       <div className="board-readout" aria-live="polite">
         {notice ? (
@@ -113,7 +121,7 @@ export function KeyButton({
         </div>
         <span className="silk text-[10px]">{label}</span>
         <div className="justify-self-end pr-1">
-          <StatusLed label={txLabel} on={txOn ?? keyer.pressed} color="dash" />
+          <StatusLed label={txLabel} on={txOn ?? keyer.pressed} color="dash" tip={txTip} />
         </div>
       </div>
     </div>

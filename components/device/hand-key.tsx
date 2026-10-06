@@ -6,6 +6,7 @@ import { REV } from "@/lib/morse";
 import type { Keyer } from "@/lib/use-keyer";
 import { keyHandlers } from "@/components/device/key-button";
 import { MorseGlyphs } from "@/components/morse-glyphs";
+import { Tooltip } from "@/components/ui/tooltip";
 
 /**
  * La tecla sola, sin el aparato: un botón redondo que se mantiene oprimido
@@ -23,6 +24,7 @@ export function HandKey({
   long,
   spaceBar,
   pause,
+  tip,
 }: {
   keyer: Keyer;
   disabled?: boolean;
@@ -35,6 +37,8 @@ export function HandKey({
   long: string;
   spaceBar: string;
   pause: string;
+  /** Cómo se teclea, para el globito del pulsador (solo con mouse). */
+  tip?: string;
 }) {
   const keying = keyer.seq + (keyer.pending ?? "");
   const code = keying || keyer.held;
@@ -46,15 +50,17 @@ export function HandKey({
       <h2>{title}</h2>
       <p className="hand-key-lead">{lead}</p>
 
-      <button
-        type="button"
-        className="pulsador"
-        disabled={disabled}
-        aria-label={ariaLabel}
-        {...keyHandlers(keyer, disabled)}
-      >
-        <Radio aria-hidden />
-      </button>
+      <Tooltip label={tip} touch={false}>
+        <button
+          type="button"
+          className="pulsador"
+          disabled={disabled}
+          aria-label={ariaLabel}
+          {...keyHandlers(keyer, disabled)}
+        >
+          <Radio aria-hidden />
+        </button>
+      </Tooltip>
 
       <div className="hand-key-readout" aria-live="polite">
         {notice ? (

@@ -18,6 +18,7 @@ import { DeviceLayout, FieldLabel } from "@/components/device-layout";
 import { MorseGlyphs } from "@/components/morse-glyphs";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { Tooltip } from "@/components/ui/tooltip";
 
 type Phase = "idle" | "asking" | "right" | "wrong";
 
@@ -213,6 +214,8 @@ export default function LearnApp() {
           shortLabel={t.device.short}
           longLabel={t.device.long}
           txLabel={t.device.tx}
+          keyTip={t.tips.key}
+          txTip={t.tips.tx}
         />
       </div>
     </Board>
@@ -220,10 +223,10 @@ export default function LearnApp() {
 
   return (
     <DeviceLayout mode="learn" title={l.title} lead={l.lead} board={board}
-      mobileAction={<Button variant="primary" onClick={phase === "asking" ? replay : ask}>
+      mobileAction={<Tooltip label={phase === "asking" ? t.tips.replay : phase === "idle" ? t.tips.start : t.tips.next}><Button variant="primary" onClick={phase === "asking" ? replay : ask}>
         {phase === "asking" ? <RotateCcw /> : <Play />}
         {phase === "asking" ? l.replay : phase === "idle" ? l.start : l.next}
-      </Button>}
+      </Button></Tooltip>}
     >
       <FieldLabel>{l.levelLabel}</FieldLabel>
       <Segmented
@@ -234,7 +237,8 @@ export default function LearnApp() {
         options={groups.map((g, i) => ({
           value: i + 1,
           label: String(i + 1),
-          title: g.title,
+          // El nombre del nivel y sus letras, p. ej. «Palabras completas: S O R U D K»
+          title: `${g.title.replace(/^\d+\s·\s/, "")}: ${g.chars.join(" ")}`,
         }))}
       />
       {/* Las letras del nivel: las nuevas resaltadas, las ya vistas atenuadas */}
@@ -249,20 +253,24 @@ export default function LearnApp() {
       <div className="mt-8 min-h-[168px]">
         {phase === "idle" && (
           <>
-            <Button variant="primary" onClick={ask}>
-              <Play />
-              {l.start}
-            </Button>
+            <Tooltip label={t.tips.start}>
+              <Button variant="primary" onClick={ask}>
+                <Play />
+                {l.start}
+              </Button>
+            </Tooltip>
             {howTo}
           </>
         )}
 
         {phase === "asking" && (
           <>
-            <Button onClick={replay}>
-              <RotateCcw />
-              {l.replay}
-            </Button>
+            <Tooltip label={t.tips.replay}>
+              <Button onClick={replay}>
+                <RotateCcw />
+                {l.replay}
+              </Button>
+            </Tooltip>
             {howTo}
           </>
         )}
@@ -295,14 +303,18 @@ export default function LearnApp() {
               </div>
             </div>
             <div className="mt-5 flex flex-wrap gap-2.5">
-              <Button variant="primary" onClick={ask}>
-                <SkipForward />
-                {l.next}
-              </Button>
-              <Button onClick={replay}>
-                <RotateCcw />
-                {l.replay}
-              </Button>
+              <Tooltip label={t.tips.next}>
+                <Button variant="primary" onClick={ask}>
+                  <SkipForward />
+                  {l.next}
+                </Button>
+              </Tooltip>
+              <Tooltip label={t.tips.replay}>
+                <Button onClick={replay}>
+                  <RotateCcw />
+                  {l.replay}
+                </Button>
+              </Tooltip>
             </div>
           </>
         )}
