@@ -18,6 +18,7 @@ import { DeviceLayout, FieldLabel, type DeviceView } from "@/components/device-l
 import { MorseGlyphs } from "@/components/morse-glyphs";
 import { Button } from "@/components/ui/button";
 import { Segmented } from "@/components/ui/segmented";
+import { OnAirIcon } from "@/components/on-air-icon";
 
 type Msg = {
   id: string;
@@ -384,7 +385,7 @@ export default function RadioApp() {
     >
       <div className="flex min-h-11 flex-wrap items-center gap-x-4 gap-y-2">
         <p className="flex items-center gap-2.5 text-[15px]" aria-live="polite">
-          <span aria-hidden className="led-sm" data-on={connected} style={LED_DOT} />
+          <OnAirIcon state={link} />
           <span className="font-semibold">
             {link === "open" ? r.listening : link === "tuning" ? r.tuning : r.offline}
           </span>

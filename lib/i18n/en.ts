@@ -20,6 +20,7 @@ const en = {
     radio: "On air",
     home: "Morseo, home",
     main: "Main",
+    repo: "View the code on GitHub",
   },
 
   station: {
@@ -27,6 +28,8 @@ const en = {
     personalStation: "THE LANGUAGE OF SIGNALS",
     received: "RECEIVED",
     footer: "LISTEN & CONNECT",
+    links: "About Morseo",
+    linkedin: "Contact me on LinkedIn",
     headings: {
       translate: ["Your station.", "Your signal."],
       learn: ["Train your", "listening."],
