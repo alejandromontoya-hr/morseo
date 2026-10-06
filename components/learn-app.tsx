@@ -12,7 +12,7 @@ import { useBootSweep } from "@/lib/use-boot-sweep";
 import { useKeyer } from "@/lib/use-keyer";
 import { useMorsePlayer } from "@/lib/use-morse-player";
 import { Board } from "@/components/device/board";
-import { KeyButton } from "@/components/device/key-button";
+import { DockKey, KeyButton } from "@/components/device/key-button";
 import { MorseTree } from "@/components/device/morse-tree";
 import { DeviceLayout, FieldLabel } from "@/components/device-layout";
 import { MorseGlyphs } from "@/components/morse-glyphs";
@@ -221,111 +221,180 @@ export default function LearnApp({ about }: { about?: ReactNode }) {
     </Board>
   );
 
+  // Lo que dice si acertó o no: arriba en el celular, en la tarjeta en las demás.
+  const verdict =
+    phase === "right" ? l.right(target ?? "") : picked ? l.wrong(target ?? "", picked) : l.wrongUnknown(target ?? "");
+
+  // Celular: los niveles en fichas y la respuesta encima del árbol, sin bajar.
+  const mobileTop = (
+    <>
+      <div role="group" aria-label={l.levelLabel} className="learn-chips">
+        {groups.map((g, i) => (
+          <button
+            key={g.title}
+            type="button"
+            aria-pressed={level === i + 1}
+            onClick={() => changeLevel(i + 1)}
+          >
+            {i + 1} · {g.chars.join(" ")}
+          </button>
+        ))}
+      </div>
+      {phase === "idle" && (
+        <Button variant="primary" className="w-full" onClick={ask}>
+          <Play />
+          {l.start}
+        </Button>
+      )}
+      {phase === "asking" && <p className="learn-ask">{l.whichOne}</p>}
+      {answered && target && (
+        <div className="learn-result" aria-live="polite">
+          <span className="learn-result-letter">{target}</span>
+          <div className="min-w-0 flex-1">
+            <p className="learn-result-title">
+              {phase === "right" ? <Check aria-hidden /> : <X aria-hidden />}
+              {verdict}
+            </p>
+            <p className="learn-result-sub">
+              <MorseGlyphs morse={MORSE[target]} size={7} tone="led" />
+              {l.score(score.right, score.total)}
+            </p>
+          </div>
+          <Tooltip label={t.tips.next}>
+            <Button variant="primary" onClick={ask}>
+              <SkipForward />
+              {l.next}
+            </Button>
+          </Tooltip>
+        </div>
+      )}
+    </>
+  );
+
   return (
     <DeviceLayout mode="learn" title={l.title} lead={l.lead} board={board} about={about}
+      mobileTop={mobileTop}
+      dockKey={<DockKey keyer={keyer} ariaLabel={t.device.keyAria} tip={t.tips.key} />}
+      dockReadout={
+        liveCode ? (
+          <>
+            <MorseGlyphs morse={liveCode} size={8} />
+            {liveLetter && <b>{liveLetter}</b>}
+          </>
+        ) : undefined
+      }
+      dockAction={
+        phase !== "idle" ? (
+          <Tooltip label={t.tips.replay}>
+            <button type="button" className="station-dock-btn" onClick={replay}>
+              <span><RotateCcw aria-hidden /></span>
+              {l.replay}
+            </button>
+          </Tooltip>
+        ) : undefined
+      }
       mobileAction={<Tooltip label={phase === "asking" ? t.tips.replay : phase === "idle" ? t.tips.start : t.tips.next}><Button variant="primary" onClick={phase === "asking" ? replay : ask}>
         {phase === "asking" ? <RotateCcw /> : <Play />}
         {phase === "asking" ? l.replay : phase === "idle" ? l.start : l.next}
       </Button></Tooltip>}
     >
-      <FieldLabel>{l.levelLabel}</FieldLabel>
-      <Segmented
-        value={level}
-        onChange={changeLevel}
-        ariaLabel={l.levelLabel}
-        className="max-w-[320px]"
-        options={groups.map((g, i) => ({
-          value: i + 1,
-          label: String(i + 1),
-          // El nombre del nivel y sus letras, p. ej. «Palabras completas: S O R U D K»
-          title: `${g.title.replace(/^\d+\s·\s/, "")}: ${g.chars.join(" ")}`,
-        }))}
-      />
-      {/* Las letras del nivel: las nuevas resaltadas, las ya vistas atenuadas */}
-      <p className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[19px] font-semibold">
-        {pool.map((c) => (
-          <span key={c} className={newLetters.has(c) ? "text-text" : "text-muted/70"}>
-            {c}
-          </span>
-        ))}
-      </p>
+      {/* En el celular esto va arriba (mobileTop); aquí queda para las pantallas grandes */}
+      <div className="learn-main">
+        <FieldLabel>{l.levelLabel}</FieldLabel>
+        <Segmented
+          value={level}
+          onChange={changeLevel}
+          ariaLabel={l.levelLabel}
+          className="max-w-[320px]"
+          options={groups.map((g, i) => ({
+            value: i + 1,
+            label: String(i + 1),
+            // El nombre del nivel y sus letras, p. ej. «Palabras completas: S O R U D K»
+            title: `${g.title.replace(/^\d+\s·\s/, "")}: ${g.chars.join(" ")}`,
+          }))}
+        />
+        {/* Las letras del nivel: las nuevas resaltadas, las ya vistas atenuadas */}
+        <p className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[19px] font-semibold">
+          {pool.map((c) => (
+            <span key={c} className={newLetters.has(c) ? "text-text" : "text-muted/70"}>
+              {c}
+            </span>
+          ))}
+        </p>
 
-      <div className="mt-8 min-h-[168px]">
-        {phase === "idle" && (
-          <>
-            <Tooltip label={t.tips.start}>
-              <Button variant="primary" onClick={ask}>
-                <Play />
-                {l.start}
-              </Button>
-            </Tooltip>
-            {howTo}
-          </>
-        )}
-
-        {phase === "asking" && (
-          <>
-            <Tooltip label={t.tips.replay}>
-              <Button onClick={replay}>
-                <RotateCcw />
-                {l.replay}
-              </Button>
-            </Tooltip>
-            {howTo}
-          </>
-        )}
-
-        {answered && target && (
-          <>
-            <div className="flex items-start gap-4">
-              <span className="w-12 shrink-0 text-center text-[56px] leading-[0.9] font-bold">
-                {target}
-              </span>
-              <div className="min-w-0 pt-1">
-                <p className="flex items-center gap-2 text-[19px] leading-snug font-semibold">
-                  {phase === "right" ? (
-                    <Check aria-hidden className="size-5 shrink-0" />
-                  ) : (
-                    <X aria-hidden className="size-5 shrink-0" />
-                  )}
-                  {phase === "right"
-                    ? l.right(target)
-                    : picked
-                      ? l.wrong(target, picked)
-                      : l.wrongUnknown(target)}
-                </p>
-                <MorseGlyphs morse={MORSE[target]} size={9} tone="led" className="mt-2.5" />
-                {tip && (
-                  <p className="mt-2.5 text-[15px] leading-snug text-muted">
-                    <span className="font-semibold text-text">{l.trick}:</span> {tip}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="mt-5 flex flex-wrap gap-2.5">
-              <Tooltip label={t.tips.next}>
+        <div className="mt-8 min-h-[168px]">
+          {phase === "idle" && (
+            <>
+              <Tooltip label={t.tips.start}>
                 <Button variant="primary" onClick={ask}>
-                  <SkipForward />
-                  {l.next}
+                  <Play />
+                  {l.start}
                 </Button>
               </Tooltip>
+              {howTo}
+            </>
+          )}
+
+          {phase === "asking" && (
+            <>
               <Tooltip label={t.tips.replay}>
                 <Button onClick={replay}>
                   <RotateCcw />
                   {l.replay}
                 </Button>
               </Tooltip>
-            </div>
-          </>
+              {howTo}
+            </>
+          )}
+
+          {answered && target && (
+            <>
+              <div className="flex items-start gap-4">
+                <span className="w-12 shrink-0 text-center text-[56px] leading-[0.9] font-bold">
+                  {target}
+                </span>
+                <div className="min-w-0 pt-1">
+                  <p className="flex items-center gap-2 text-[19px] leading-snug font-semibold">
+                    {phase === "right" ? (
+                      <Check aria-hidden className="size-5 shrink-0" />
+                    ) : (
+                      <X aria-hidden className="size-5 shrink-0" />
+                    )}
+                    {verdict}
+                  </p>
+                  <MorseGlyphs morse={MORSE[target]} size={9} tone="led" className="mt-2.5" />
+                  {tip && (
+                    <p className="mt-2.5 text-[15px] leading-snug text-muted">
+                      <span className="font-semibold text-text">{l.trick}:</span> {tip}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="mt-5 flex flex-wrap gap-2.5">
+                <Tooltip label={t.tips.next}>
+                  <Button variant="primary" onClick={ask}>
+                    <SkipForward />
+                    {l.next}
+                  </Button>
+                </Tooltip>
+                <Tooltip label={t.tips.replay}>
+                  <Button onClick={replay}>
+                    <RotateCcw />
+                    {l.replay}
+                  </Button>
+                </Tooltip>
+              </div>
+            </>
+          )}
+        </div>
+
+        {score.total > 0 && (
+          <p className="mt-6 flex flex-wrap gap-x-5 text-[15px] text-muted">
+            <span>{l.score(score.right, score.total)}</span>
+            {score.streak >= 2 && <span>{l.streak(score.streak)}</span>}
+          </p>
         )}
       </div>
-
-      {score.total > 0 && (
-        <p className="mt-6 flex flex-wrap gap-x-5 text-[15px] text-muted">
-          <span>{l.score(score.right, score.total)}</span>
-          {score.streak >= 2 && <span>{l.streak(score.streak)}</span>}
-        </p>
-      )}
 
       <section className="mt-10 border-t border-line pt-6">
         <h2 className="text-[19px] font-bold">{l.guideTitle}</h2>

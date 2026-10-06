@@ -127,3 +127,33 @@ export function KeyButton({
     </div>
   );
 }
+
+/**
+ * El pulsador del celular, en el panel de abajo junto al pulgar: el mismo botón
+ * redondo, sin la placa alrededor. Con el dedo no lleva globito: sostener es la raya.
+ */
+export function DockKey({
+  keyer,
+  disabled = false,
+  ariaLabel,
+  tip,
+}: {
+  keyer: Keyer;
+  disabled?: boolean;
+  ariaLabel: string;
+  tip?: string;
+}) {
+  return (
+    <Tooltip label={tip} touch={false}>
+      <button
+        type="button"
+        className="pulsador"
+        disabled={disabled}
+        aria-label={ariaLabel}
+        {...keyHandlers(keyer, disabled)}
+      >
+        <Radio aria-hidden />
+      </button>
+    </Tooltip>
+  );
+}

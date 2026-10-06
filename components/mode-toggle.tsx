@@ -5,6 +5,7 @@ import { useTheme } from "next-themes";
 
 import { useI18n } from "@/lib/i18n/context";
 import { Button } from "@/components/ui/button";
+import { Segmented } from "@/components/ui/segmented";
 import { Tooltip } from "@/components/ui/tooltip";
 
 export function ModeToggle() {
@@ -24,5 +25,24 @@ export function ModeToggle() {
         <Moon className="absolute scale-0 transition-transform dark:scale-100" />
       </Button>
     </Tooltip>
+  );
+}
+
+/** Claro u oscuro, con su nombre: para la hoja de ajustes del celular. */
+export function ThemeChoice() {
+  const { setTheme, resolvedTheme } = useTheme();
+  const { t } = useI18n();
+
+  return (
+    <Segmented
+      value={resolvedTheme === "dark" ? "dark" : "light"}
+      onChange={setTheme}
+      ariaLabel={t.station.theme}
+      className="settings-theme"
+      options={[
+        { value: "light", label: <><Sun aria-hidden />{t.station.themeLight}</> },
+        { value: "dark", label: <><Moon aria-hidden />{t.station.themeDark}</> },
+      ]}
+    />
   );
 }

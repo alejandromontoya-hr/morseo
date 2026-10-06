@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 
 import { NEUTRAL, createFace, faceShape } from "@/lib/emblem-face";
 import { toneNow } from "@/lib/tone";
@@ -20,8 +20,26 @@ const rest = faceShape(NEUTRAL);
  * una palabra en morse en su letrero. Cuando suena morse en la página mira el
  * aparato y abre la boca con cada tono. Pasar el puntero por encima lo hace
  * guiñar; un clic, sorprenderse. Con movimiento reducido se queda quieto.
+ *
+ * `variant="dock"` es su versión del celular: solo la cara, junto al
+ * pulsador. Su globo va aparte, encima, con todo el ancho del panel: lo que
+ * dice en morse lo escribe en `sayRef` y mientras habla esconde `idleRef`.
  */
-export function StationEmblem({ label, words }: { label: string; words: string[] }) {
+export function StationEmblem({
+  label = "",
+  words,
+  variant = "emblem",
+  sayRef: saySlot,
+  idleRef: idleSlot,
+}: {
+  label?: string;
+  words: string[];
+  variant?: "emblem" | "dock";
+  /** Celular: dónde escribe lo que dice en morse (el globo del panel). */
+  sayRef?: RefObject<HTMLElement | null>;
+  /** Celular: lo que se esconde mientras habla (el texto de reposo del globo). */
+  idleRef?: RefObject<HTMLElement | null>;
+}) {
   const rootRef = useRef<HTMLDivElement>(null);
   const leftRef = useRef<SVGEllipseElement>(null);
   const rightRef = useRef<SVGEllipseElement>(null);
@@ -36,8 +54,8 @@ export function StationEmblem({ label, words }: { label: string; words: string[]
     const eyes = [leftRef.current, rightRef.current];
     const lids = [lidLRef.current, lidRRef.current];
     const mouth = mouthRef.current;
-    const labelEl = labelRef.current;
-    const sayEl = sayRef.current;
+    const labelEl = idleSlot?.current ?? labelRef.current;
+    const sayEl = saySlot?.current ?? sayRef.current;
     if (!root || !eyes[0] || !eyes[1] || !lids[0] || !lids[1] || !mouth || !labelEl || !sayEl) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
@@ -68,11 +86,14 @@ export function StationEmblem({ label, words }: { label: string; words: string[]
       Object.assign(pointer, { x: e.clientX, y: e.clientY, seen: true, at: now });
     };
     // Hacia el aparato (el árbol o el panel del pulsador): ahí mira cuando suena.
+    // En el celular el aparato es el pulsador que tiene al lado.
     const device = () => {
       const el =
-        document.querySelector(".station-side .board") ??
-        document.querySelector(".station-side .station-panel") ??
-        document.querySelector(".station-side");
+        variant === "dock"
+          ? document.querySelector(".station-dock .pulsador")
+          : document.querySelector(".station-side .board") ??
+            document.querySelector(".station-side .station-panel") ??
+            document.querySelector(".station-side");
       if (!el) return { x: 0, y: 1 };
       const b = el.getBoundingClientRect();
       const c = center();
@@ -162,23 +183,35 @@ export function StationEmblem({ label, words }: { label: string; words: string[]
       root.removeEventListener("pointerenter", onEnter);
       root.removeEventListener("pointerdown", onDown);
     };
-  }, [words]);
+  }, [words, variant, saySlot, idleSlot]);
+
+  const face = (
+    <svg viewBox="-50 -50 100 100" className="station-face">
+      <ellipse ref={leftRef} {...rest.left} />
+      <path
+        ref={mouthRef}
+        d={rest.mouth.d}
+        strokeWidth={rest.mouth.strokeWidth}
+        transform={rest.mouth.transform}
+      />
+      <ellipse ref={rightRef} {...rest.right} />
+      <path ref={lidLRef} d={rest.lidL.d} strokeWidth={rest.lidL.strokeWidth} opacity={rest.lidL.opacity} />
+      <path ref={lidRRef} d={rest.lidR.d} strokeWidth={rest.lidR.strokeWidth} opacity={rest.lidR.opacity} />
+    </svg>
+  );
+
+  if (variant === "dock") {
+    return (
+      <div ref={rootRef} className="dock-face" aria-hidden>
+        {face}
+      </div>
+    );
+  }
 
   return (
     <div ref={rootRef} className="station-emblem" aria-hidden>
       <span />
-      <svg viewBox="-50 -50 100 100" className="station-face">
-        <ellipse ref={leftRef} {...rest.left} />
-        <path
-          ref={mouthRef}
-          d={rest.mouth.d}
-          strokeWidth={rest.mouth.strokeWidth}
-          transform={rest.mouth.transform}
-        />
-        <ellipse ref={rightRef} {...rest.right} />
-        <path ref={lidLRef} d={rest.lidL.d} strokeWidth={rest.lidL.strokeWidth} opacity={rest.lidL.opacity} />
-        <path ref={lidRRef} d={rest.lidR.d} strokeWidth={rest.lidR.strokeWidth} opacity={rest.lidR.opacity} />
-      </svg>
+      {face}
       <small>
         <span ref={labelRef}>{label}</span>
         <span ref={sayRef} className="station-say" hidden />
