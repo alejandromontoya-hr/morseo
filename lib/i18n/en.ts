@@ -1,0 +1,176 @@
+// English dictionary — the DEFAULT language and the source of truth for the
+// shape of every translation. `es.ts` must satisfy `Dict` (= typeof this), so
+// TypeScript flags any string that is added here but forgotten there.
+
+const spoken = (code: string) =>
+  [...code].map((s) => (s === "-" ? "dash" : "dot")).join(" ");
+
+const en = {
+  meta: {
+    title: "Morseo — Morse code translator",
+    description:
+      "Key or type Morse code and watch each letter light up its path on the Morse tree. Learn it by ear and send it live.",
+    learnTitle: "Learn Morse by ear — Morseo",
+    radioTitle: "On air — Morseo",
+  },
+
+  nav: {
+    translate: "Translate",
+    learn: "Learn",
+    radio: "On air",
+    home: "Morseo, home",
+    main: "Main",
+  },
+
+  station: {
+    eyebrow: "Personal station",
+    personalStation: "THE LANGUAGE OF SIGNALS",
+    received: "RECEIVED",
+    footer: "LISTEN & CONNECT",
+    headings: {
+      translate: ["Your station.", "Your signal."],
+      learn: ["Train your", "listening."],
+      radio: ["Open a channel.", "Connect."],
+    },
+    deviceHint: "Tap a letter to hear its path. Tap the key for a dot; hold for a dash.",
+    view: {
+      label: "How to key",
+      key: "Key",
+      tree: "Morse tree",
+      keyTitle: "Just the key",
+      treeTitle: "The key with the Morse tree: every letter lights up its path",
+    },
+    hand: {
+      title: "Find your rhythm.",
+      lead: "A single tap says more than you think.",
+      short: "short tap",
+      long: "hold",
+      spaceBar: "The space bar works too.",
+      pause: "A pause ends the letter.",
+    },
+    silenceTitle: "Silence communicates, too.",
+    silenceBody: "A short pause separates letters; a longer one separates words. Listen to the whole rhythm.",
+    signal: "YOUR SIGNAL · CW",
+    editorHint: "Every letter has its own rhythm.",
+  },
+
+  theme: {
+    toggle: "Switch light and dark mode",
+  },
+
+  language: {
+    label: "Language",
+  },
+
+  common: {
+    wpm: (n: number) => `${n} words per minute`,
+  },
+
+  device: {
+    words: ["MORSE", "CODE"] as [string, string],
+    treeAria:
+      "Morse tree: every letter lights up its path of dots and dashes from the antenna.",
+    nodeLabel: (letter: string, code: string) => `${letter}: ${spoken(code)}`,
+    keyAria:
+      "Morse key: tap briefly for a dot, hold for a dash. The space bar works too.",
+    key: "Key",
+    short: "Short",
+    long: "Long",
+    tx: "TX",
+    rx: "RX",
+    pwr: "PWR",
+    notALetter: "NOT A LETTER",
+  },
+
+  translate: {
+    title: "Morse translator",
+    lead: "Write a message and hear its rhythm, or key it by hand. Switch to the Morse tree to watch each letter light up its path.",
+    messageLabel: "Your message",
+    placeholder: "Type here, or use the key",
+    morseLabel: "In Morse",
+    morseEmpty: "The translation shows up here as you type or key.",
+    skipped: (chars: string) => `No Morse for: ${chars}`,
+    copy: "Copy",
+    copied: "Copied",
+    copyAria: "Copy the message in Morse",
+    play: "Play",
+    stop: "Stop",
+    clear: "Clear",
+    speed: "Speed",
+    speeds: { slow: "Slow", medium: "Medium", fast: "Fast" },
+  },
+
+  learn: {
+    title: "Learn Morse by ear",
+    lead: "A letter plays. Find it on the tree, type it or key it.",
+    levelLabel: "Letters to practice",
+    start: "Play a letter",
+    replay: "Hear it again",
+    next: "Next letter",
+    howTo:
+      "Tap the letter on the tree, press it on your keyboard, or key it with the space bar.",
+    howToTouch: "Tap the letter on the tree, or key it with the key.",
+    right: (letter: string) => `Yes, it's ${letter}.`,
+    wrong: (target: string, picked: string) =>
+      `It was ${target}. You chose ${picked}.`,
+    wrongUnknown: (target: string) =>
+      `It was ${target}. What you keyed isn't a letter.`,
+    trick: "Trick",
+    score: (right: number, total: number) => `${right} of ${total} right`,
+    streak: (n: number) => `Streak of ${n}`,
+    guideTitle: "How to read the tree",
+    guide: [
+      "Start at the antenna. Each dot lights a lime circle and each dash a white bar, until you reach the letter.",
+      "A dash lasts as long as three dots. Letters are separated by a short silence, and words by a longer one.",
+      "Learn by sound, not by counting: every letter has its own rhythm. Start with E and T and add a few letters at a time.",
+    ],
+  },
+
+  radio: {
+    title: "On air",
+    lead: "Hear what's being sent on your channel and answer in Morse, in real time.",
+    listening: "Listening",
+    tuning: "Tuning in…",
+    soundBlocked: "Tap to hear what's coming in",
+    channelLabel: "Channel",
+    channels: [
+      "General call",
+      "Slow practice",
+      "Chat",
+      "Drill",
+      "Long distance",
+      "Free",
+    ],
+    callsignLabel: "Your callsign",
+    newCallsign: "Another callsign",
+    modeLabel: "How to transmit",
+    modes: { direct: "Live", button: "With button" },
+    modeTitles: {
+      direct: "Every letter goes out as you key it",
+      button: "Build the message and send it with Transmit",
+    },
+    modeHelp: {
+      direct: "Every letter you key goes out the moment you finish it. Typed messages are sent with Enter.",
+      button: "Build the message with the key or by typing, then send it with Transmit.",
+    },
+    sending: "Sending",
+    messageLabel: "Message",
+    placeholder: "Type, or use the key",
+    placeholderDirect: "Type and send with Enter",
+    send: "Transmit",
+    presence: (n: number) =>
+      n <= 1 ? "Only you on this channel" : `${n} on this channel`,
+    feedLabel: "Heard on this channel",
+    feedEmpty: "Nothing yet. Open this page in another tab or device to try it.",
+    you: "you",
+    operator: "Operator",
+    replay: "Play again",
+    offline: "No connection. Retrying…",
+    serverNote:
+      "Channels live on this server while it runs. Anyone who opens this page on your network can join.",
+  },
+};
+
+export default en;
+
+export type Dict = typeof en;

@@ -1,0 +1,11 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Favicon de Morseo: la R en morse ( .-. ) con los LED del árbol sobre la placa grafito -->
+  <rect x="0.5" y="0.5" width="31" height="31" rx="8" fill="#232325" stroke="#3a3a3e" />
+
+  <!-- . -->
+  <circle cx="6.5" cy="16" r="3" fill="#cad77f" />
+  <!-- - -->
+  <rect x="11.5" y="13" width="9" height="6" rx="2" fill="#f4f4f6" />
+  <!-- . -->
+  <circle cx="25.5" cy="16" r="3" fill="#cad77f" />
+</svg>
