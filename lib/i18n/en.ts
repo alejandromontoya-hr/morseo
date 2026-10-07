@@ -157,30 +157,45 @@ const en = {
   },
 
   learn: {
-    title: "Learn Morse by ear",
-    lead: "A letter plays. Find it on the tree, type it or key it.",
-    levelLabel: "Letters to practice",
+    title: "Practice by level",
+    lead: "Get to know each letter by its sound, then practice it. A few letters at a time.",
+    levelLabel: "Levels",
+    // Short level names, in the order of lib/morse-learn.ts.
+    levelNames: ["Essentials", "Words", "Common", "Hard ones"],
+    stepsLabel: "Level steps",
+    tabs: { know: "Meet", practice: "Practice" },
+    // Meet: every letter with its sound, its rhythm and its path on the tree.
+    playLetter: (letter: string) => `Hear ${letter}`,
+    practiceThese: (n: number) => `Practice these ${n}`,
+    practice: "Practice",
+    knowHint: "Tap each letter to hear it.",
+    hearAll: (n: number) => `Hear all ${n}`,
+    // Practice: a letter plays and you pick it from the buttons.
     start: "Play a letter",
     replay: "Hear it again",
     next: "Next letter",
-    whichOne: "Which letter played? Tap it on the tree or key it.",
-    // Phone: the board's display, above the tree.
+    ready: "Play a letter and pick which one it was.",
     ask: "Which letter played?",
-    idleTitle: "Tap “Play a letter”",
-    idleLetters: (letters: string) => `Letters: ${letters}`,
+    answerHint: "Pick it below or press it on your keyboard.",
+    answerHintTouch: "Tap the letter you heard.",
     answerWithKey: "Answer with the key",
-    scoreShort: (right: number, total: number) => `${right} of ${total}`,
-    howTo:
-      "Tap the letter on the tree, press it on your keyboard, or key it with the space bar.",
-    howToTouch: "Tap the letter on the tree, or key it with the key.",
     right: (letter: string) => `Yes, it's ${letter}.`,
     wrong: (target: string, picked: string) =>
       `It was ${target}. You chose ${picked}.`,
     wrongUnknown: (target: string) =>
       `It was ${target}. What you keyed isn't a letter.`,
+    hearBoth: "Hear both",
+    you: "You",
+    seeTree: "See it on the tree",
     trick: "Trick",
-    score: (right: number, total: number) => `${right} of ${total} right`,
-    streak: (n: number) => `Streak of ${n}`,
+    // Level mastery: the latest tries shown as lights.
+    progress: (hits: number, total: number, window: number) =>
+      total >= window ? `${hits} of the last ${window}` : `${hits} of ${total}`,
+    goal: (next: number | null, need: number, window: number) =>
+      next ? `Get ${need} of ${window} to move on to level ${next}.` : `Get ${need} of ${window} to master every letter.`,
+    mastered: (level: number) => `Level ${level} mastered!`,
+    goNext: (level: number) => `Go to level ${level}`,
+    keepPracticing: "Keep practicing",
     guideTitle: "How to read the tree",
     guide: [
       "Start at the antenna. Each dot lights a lime circle and each dash a white bar, until you reach the letter.",

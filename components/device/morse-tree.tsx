@@ -124,7 +124,8 @@ function Lens({ g, on }: { g: Geo; on: boolean }) {
  * y recorre el árbol nivel por nivel: el arranque del aparato.
  *
  * `compact` quita la serigrafía de arriba (y su alto): en el celular, para
- * que el árbol quepa entero junto al botón del ejercicio.
+ * que el árbol quepa entero. `mark` rodea en rojo una letra: la que elegiste
+ * cuando fallaste en Aprender.
  */
 export function MorseTree({
   code,
@@ -135,6 +136,7 @@ export function MorseTree({
   ariaLabel,
   nodeLabel,
   compact = false,
+  mark,
   className,
 }: {
   code: string;
@@ -146,6 +148,8 @@ export function MorseTree({
   ariaLabel: string;
   nodeLabel: (node: TreeNode) => string;
   compact?: boolean;
+  /** Código de la letra que se rodea en rojo. */
+  mark?: string;
   className?: string;
 }) {
   const glowId = "glow" + useId().replace(/[^a-zA-Z0-9_-]/g, "");
@@ -268,6 +272,7 @@ export function MorseTree({
             {shape(g, 0, { className: "led", "data-on": on, strokeWidth: 1.2 })}
             <Lens g={g} on={on} />
             {interactive && shape(g, 6, { className: "node-ring" })}
+            {n.code === mark && <circle cx={g.cx} cy={g.cy} r={17} className="tree-mark" />}
             <text
               x={lp.x}
               y={lp.y}
