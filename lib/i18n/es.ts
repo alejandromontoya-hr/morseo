@@ -159,30 +159,45 @@ const es: Dict = {
   },
 
   learn: {
-    title: "Aprende morse de oído",
-    lead: "Suena una letra. Encuéntrala en el árbol, escríbela o tecléala.",
-    levelLabel: "Letras para practicar",
+    title: "Práctica por niveles",
+    lead: "Conoce cada letra por su sonido y practícala. Pocas letras a la vez.",
+    levelLabel: "Niveles",
+    // Nombres cortos de los niveles, en el orden de lib/morse-learn.ts.
+    levelNames: ["Esenciales", "Palabras", "Comunes", "Difíciles"],
+    stepsLabel: "Pasos del nivel",
+    tabs: { know: "Conoce", practice: "Practica" },
+    // Conoce: cada letra con su sonido, su ritmo y su camino en el árbol.
+    playLetter: (letter: string) => `Escuchar la ${letter}`,
+    practiceThese: (n: number) => `Practicar con estas ${n}`,
+    practice: "Practicar",
+    knowHint: "Toca cada letra y escúchala.",
+    hearAll: (n: number) => `Oír las ${n}`,
+    // Practica: suena una y se elige entre los botones.
     start: "Escuchar una letra",
     replay: "Oír de nuevo",
     next: "Siguiente letra",
-    whichOne: "¿Qué letra sonó? Tócala en el árbol o tecléala.",
-    // Celular: la pantalla del aparato, encima del árbol.
+    ready: "Escucha una letra y elige cuál fue.",
     ask: "¿Qué letra sonó?",
-    idleTitle: "Toca «Escuchar una letra»",
-    idleLetters: (letters: string) => `Letras: ${letters}`,
+    answerHint: "Elígela abajo u oprímela en tu teclado.",
+    answerHintTouch: "Toca la letra que sonó.",
     answerWithKey: "Responder con la tecla",
-    scoreShort: (right: number, total: number) => `${right} de ${total}`,
-    howTo:
-      "Toca la letra en el árbol, oprímela en tu teclado o tecléala con la barra espaciadora.",
-    howToTouch: "Toca la letra en el árbol o tecléala con la tecla.",
     right: (letter: string) => `¡Eso! Es la ${letter}.`,
     wrong: (target: string, picked: string) =>
       `Era la ${target}. Elegiste la ${picked}.`,
     wrongUnknown: (target: string) =>
       `Era la ${target}. Lo que tecleaste no es una letra.`,
+    hearBoth: "Oír las dos",
+    you: "Tú",
+    seeTree: "Ver en el árbol",
     trick: "Truco",
-    score: (right: number, total: number) => `${right} de ${total} acertadas`,
-    streak: (n: number) => `Racha de ${n}`,
+    // El dominio del nivel: los últimos intentos como luces.
+    progress: (hits: number, total: number, window: number) =>
+      total >= window ? `${hits} de las últimas ${window}` : `${hits} de ${total}`,
+    goal: (next: number | null, need: number, window: number) =>
+      next ? `Con ${need} de ${window} pasas al nivel ${next}.` : `Con ${need} de ${window} dominas todas las letras.`,
+    mastered: (level: number) => `¡Nivel ${level} dominado!`,
+    goNext: (level: number) => `Ir al nivel ${level}`,
+    keepPracticing: "Seguir practicando",
     guideTitle: "Cómo leer el árbol",
     guide: [
       "Empieza en la antena. Cada punto enciende un círculo lima y cada raya una barra blanca, hasta llegar a la letra.",

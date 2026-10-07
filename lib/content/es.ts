@@ -22,7 +22,7 @@ const es: Content = {
     },
     learn: {
       alt: "Morseo: aprende código morse de oído, pocas letras a la vez.",
-      tagline: "Suena una letra y la encuentras en el árbol morse. Pocas letras a la vez.",
+      tagline: "Conoce cada letra por su sonido y practícala. Pocas letras a la vez.",
     },
     radio: {
       alt: "Morseo: transmite código morse en vivo a quien esté en tu canal.",
@@ -39,7 +39,7 @@ const es: Content = {
     learn: {
       title: "Aprender Código Morse de Oído, Gratis | Morseo",
       description:
-        "Aprende código morse por sonido, pocas letras a la vez (método Koch). Suena una letra y la encuentras en el árbol morse. Gratis, en el navegador y sin registro.",
+        "Aprende código morse por sonido, pocas letras a la vez (método Koch): conoce cada letra, practícala de oído y mira su camino en el árbol morse. Gratis, en el navegador y sin registro.",
     },
     radio: {
       title: "Transmitir en Morse en Vivo: Telégrafo Online | Morseo",
@@ -112,7 +112,7 @@ const es: Content = {
       },
       {
         q: "¿Puedo aprender código morse en el celular?",
-        a: "Sí. Morseo funciona en el navegador del celular: toca la letra en el árbol o tecléala en la pantalla.",
+        a: "Sí. Morseo funciona en el navegador del celular: suena una letra y tocas el botón de la que oíste.",
       },
     ],
   },

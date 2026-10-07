@@ -89,21 +89,39 @@ export function mnemonics(locale: Locale): Mnemonic[] {
     { letter: "A", tip: p("“a-BOUT” — di-dah.", "«a-LLÁ» — di-dah.") },
     { letter: "B", tip: p("“BOIL-ing wa-ter” — dah-di-di-dit.", "«BOM-ba-de-a» — dah-di-di-dit.") },
     { letter: "C", tip: p("“CO-ca-CO-la” — dah-di-dah-dit.", "«CO-ca-CO-la» — dah-di-dah-dit.") },
+    { letter: "D", tip: p("“DOG-did-it” — dah-di-dit.", "«DÁ-me-lo» — dah-di-dit.") },
+    { letter: "E", tip: p("“eh” — dit. A single short tap.", "«eh» — dit. Un solo toque corto.") },
     { letter: "F", tip: p("“I-must-HUR-ry” — di-di-dah-dit.", "«fu-si-LA-do» — di-di-dah-dit.") },
     { letter: "G", tip: p("“GOOD-GRA-vy” — dah-dah-dit.", "«GRAN-DE-so» — dah-dah-dit.") },
+    { letter: "H", tip: p("“hi-hi-hi-hi” — di-di-di-dit. Four dots, a giggle.", "«ji-ji-ji-ji» — di-di-di-dit. Cuatro puntos, una risita.") },
+    { letter: "I", tip: p("“ti-ti” — di-dit. Two short taps: twice an E.", "«ti-ti» — di-dit. Dos toques cortos: el doble de la E.") },
     { letter: "J", tip: p("“to-JUMP-JUMP-JUMP” — di-dah-dah-dah.", "«ja-BÓN-BÓN-BÓN» — di-dah-dah-dah.") },
     { letter: "K", tip: p("“GO-a-HEAD” — dah-di-dah. “K” = go ahead.", "«KA-me-RÁ» — dah-di-dah. La «K» = adelante.") },
     { letter: "L", tip: p("“to-LOOK-a-round” — di-dah-di-dit.", "«la-BO-la-da» — di-dah-di-dit.") },
+    { letter: "M", tip: p("“MOO-MOO” — dah-dah. Two dashes.", "«MÚ-MÚ» — dah-dah. Dos rayas, como una vaca.") },
     { letter: "N", tip: p("“NA-vy” — dah-dit.", "«NO-ta» — dah-dit.") },
     { letter: "O", tip: p("“OLD-MO-THER” — dah-dah-dah. Three dashes, easy.", "«O-SÍ-O» — dah-dah-dah. Tres rayas, fácil.") },
     { letter: "P", tip: p("“a-POINT-LESS-plea” — di-dah-dah-dit.", "«pe-RRO-RRO-pe» — di-dah-dah-dit.") },
     { letter: "Q", tip: p("“GOD-SAVE-the-QUEEN” — dah-dah-di-dah.", "«QUÉ-QUE-ri-QUÉ» — dah-dah-di-dah.") },
     { letter: "R", tip: p("“ro-TA-tion” — di-dah-dit. “R” = received.", "«re-MÓ-la» — di-dah-dit. La «R» = recibido.") },
     { letter: "S", tip: p("“sa-la-mi” — di-di-dit. Three dots.", "«sa-la-do» — di-di-dit. Tres puntos.") },
+    { letter: "T", tip: p("“TAAA” — dah. One long tone.", "«TÚÚÚ» — dah. Un solo tono largo.") },
+    { letter: "U", tip: p("“un-der-STAND” — di-di-dah.", "«u-sa-RÁ» — di-di-dah.") },
     { letter: "V", tip: p("“did-she-like-IT” — di-di-di-dah. The “V” of victory (Beethoven).", "«ve-ve-ve-VÉN» — di-di-di-dah. El «V» de la victoria (Beethoven).") },
     { letter: "W", tip: p("“the-WILD-WEST” — di-dah-dah.", "«wa-GÓN-GÓN» — di-dah-dah.") },
     { letter: "X", tip: p("“X-marks-the-SPOT” — dah-di-di-dah.", "«XÓ-fo-fo-RÁ» — dah-di-di-dah.") },
+    { letter: "Y", tip: p("“YEL-low-YO-YO” — dah-di-dah-dah.", "«YO-no-SOY-YO» — dah-di-dah-dah.") },
+    { letter: "Z", tip: p("“ZOOM-ZOOM-zip-zip” — dah-dah-di-dit.", "«ZAS-ZAS-ca-ta» — dah-dah-di-dit.") },
   ];
+}
+
+/**
+ * El ritmo de una letra cantado, como lo aprenden los radioaficionados: la
+ * raya es «dah» y el punto «di» («dit» si cierra la letra). La N (–·) es
+ * «dah-dit».
+ */
+export function sung(code: string): string {
+  return [...code].map((s, i) => (s === "-" ? "dah" : i === code.length - 1 ? "dit" : "di")).join("-");
 }
 
 /* ─────────────────────── Abreviaturas y jerga CW ────────────────────────── */

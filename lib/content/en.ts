@@ -21,7 +21,7 @@ const en = {
     },
     learn: {
       alt: "Morseo: learn Morse code by ear, a few letters at a time.",
-      tagline: "A letter plays and you find it on the Morse tree. A few letters at a time.",
+      tagline: "Get to know each letter by its sound, then practice it. A few letters at a time.",
     },
     radio: {
       alt: "Morseo: send Morse code live to anyone on your channel.",
@@ -38,7 +38,7 @@ const en = {
     learn: {
       title: "Learn Morse Code by Ear, Free | Morseo",
       description:
-        "Learn Morse code by sound, a few letters at a time (Koch method). A letter plays and you find it on the Morse tree. Free, in your browser, no sign-up.",
+        "Learn Morse code by sound, a few letters at a time (Koch method): meet each letter, practice it by ear and see its path on the Morse tree. Free, in your browser, no sign-up.",
     },
     radio: {
       title: "Send Morse Code Live: Online Telegraph | Morseo",
@@ -111,7 +111,7 @@ const en = {
       },
       {
         q: "Can I learn Morse code on my phone?",
-        a: "Yes. Morseo works in the phone's browser: tap the letter on the tree or key it on the screen.",
+        a: "Yes. Morseo works in the phone's browser: a letter plays and you tap the button for the one you heard.",
       },
     ],
   },

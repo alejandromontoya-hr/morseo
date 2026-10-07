@@ -649,9 +649,6 @@
   .station-workspace { grid-template-columns: minmax(0,1fr); }
   .station-side { width: 100%; max-width: 440px; margin: 0 auto; }
   .station-device-hint { grid-column: 1; }
-  /* Al aprender, el aparato va primero: ahí se responde */
-  .station-page[data-mode="learn"] .station-side,
-  .station-page[data-mode="learn"] .station-device-hint { order: -1; }
   .station-device { max-width: 404px; margin: 0 auto; }
   .station-mobile-action { display: block; margin-bottom: 17px; }
   .station-mobile-action button { width: 100%; }
@@ -761,7 +758,6 @@
 .sheet-telegraph .sheet-grip { display: none; }
 .sheet-telegraph .sheet-head { margin: 0 0 12px; }
 .sheet-telegraph .board-readout { margin: 14px 0 10px; }
-.sheet-telegraph .learn-display { display: none; }
 .telegraph-top { flex: 1; min-width: 0; }
 .telegraph-msg { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px; border-radius: 14px; background: rgb(255 255 255 / 0.08); color: var(--mist); font: 18px/1 Consolas, monospace; white-space: nowrap; overflow: hidden; }
 .telegraph-msg > span { font-family: var(--font-sans); font-size: 14px; color: rgb(244 244 246 / 0.6); }
@@ -773,6 +769,87 @@
 .telegraph-step { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--lime); color: var(--graphite); }
 .telegraph-step svg { width: 19px; height: 19px; }
 
+/* ─────────────────── Aprender: conoce y practica ─────────────────── */
+
+.learn-stage { display: grid; gap: 18px; }
+/* Los niveles con nombre y letras; el elegido en lima y una palomita si ya está dominado */
+.learn-levels { position: relative; display: flex; flex-wrap: wrap; gap: 8px; }
+.learn-levels button { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 52px; padding: 7px 15px; border-radius: 16px; background: var(--surface); color: var(--muted); text-align: left; transition: background-color 0.15s, color 0.15s; }
+.learn-levels button > span { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; }
+.learn-levels button svg { width: 14px; height: 14px; }
+.learn-levels small { font: 600 11px/1 var(--font-barlow), sans-serif; letter-spacing: 0.16em; }
+.learn-levels button[aria-pressed="true"] { background: var(--lime); color: var(--graphite); }
+@media (hover: hover) {
+  .learn-levels button:not([aria-pressed="true"]):hover { color: var(--text); }
+  .learn-answers button:hover { box-shadow: inset 0 0 0 1.5px var(--text); }
+}
+/* Los dos pasos del nivel */
+.learn-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 999px; background: var(--surface); }
+.learn-tabs button { display: flex; align-items: center; justify-content: center; gap: 8px; height: 40px; border-radius: 999px; color: var(--muted); font-size: 15px; font-weight: 600; }
+.learn-tabs button i { font: 800 13px/1 var(--font-doto), monospace; font-style: normal; font-variation-settings: "ROND" 100; }
+.learn-tabs button[aria-selected="true"] { background: var(--ink); color: var(--ink-fg); }
+.learn-know,
+.learn-practice { display: grid; gap: 16px; }
+/* Conoce: cada letra nueva con su sonido, su ritmo cantado y su truco */
+.learn-intro { max-width: 60ch; color: var(--muted); font-size: 15px; line-height: 1.5; }
+.learn-intro b { color: var(--text); font-weight: 600; }
+.learn-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+/* La letra a la izquierda; a su lado, sus puntos y rayas y su ritmo; debajo, el truco */
+.learn-card { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 2px 12px; padding: 12px 50px 12px 14px; border-radius: 18px; background: var(--surface); color: var(--text); text-align: left; transition: box-shadow 0.15s, background-color 0.15s; }
+.learn-card > b { grid-row: span 2; font-size: 32px; font-weight: 600; line-height: 1; }
+.learn-card .glyphs { align-self: end; }
+.learn-card .learn-sung { align-self: start; }
+.learn-card .learn-tip { grid-column: 1 / -1; margin-top: 4px; }
+.learn-card[data-on] { background: var(--desk-raised); box-shadow: inset 0 0 0 2px var(--lime), 0 10px 22px -14px rgb(35 35 37 / 0.45); }
+.learn-sung { font: 600 12px/1.2 var(--font-barlow), sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.learn-tip { font-size: 12.5px; line-height: 1.3; color: var(--muted); }
+.learn-card-play { position: absolute; top: 12px; right: 12px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--ink); color: var(--ink-fg); }
+.learn-card[data-on] .learn-card-play { background: var(--lime); color: var(--graphite); }
+.learn-card-play svg { width: 14px; height: 14px; }
+.learn-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+/* Practica: la pregunta (o el resultado) con su botón de sonido */
+.learn-ask { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 16px; min-height: 128px; padding: 16px; border-radius: 20px; background: var(--surface); }
+.learn-ask[data-state="right"] { background: color-mix(in oklab, var(--lime) 32%, var(--desk-raised)); }
+.learn-ask[data-state="wrong"] { background: color-mix(in oklab, var(--busy) 10%, var(--desk-raised)); box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--busy) 35%, transparent); }
+.learn-sound { display: grid; place-items: center; width: 60px; height: 60px; border-radius: 50%; background: var(--ink); color: var(--ink-fg); box-shadow: 0 0 0 6px color-mix(in oklab, var(--lime) 45%, transparent); }
+.learn-sound svg { width: 24px; height: 24px; }
+.learn-ask-body { display: grid; gap: 8px; min-width: 0; }
+.learn-ask-title { display: flex; align-items: center; gap: 8px; font-size: 19px; font-weight: 600; line-height: 1.25; letter-spacing: -0.01em; }
+.learn-ask-title svg { flex: none; width: 19px; height: 19px; }
+.learn-ask[data-state="wrong"] .learn-ask-title svg { color: var(--busy); }
+.learn-ask-hint,
+.learn-ask-tip { color: var(--muted); font-size: 14px; line-height: 1.4; }
+.learn-ask-tip b { color: var(--text); font-weight: 600; }
+/* Al fallar: la que sonó y la que elegiste (en rojo), y oírlas seguidas */
+.learn-compare { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; color: var(--muted); font-size: 14px; }
+.learn-compare > span { display: inline-flex; align-items: center; gap: 8px; }
+.learn-compare b { color: var(--text); font-weight: 600; }
+.learn-compare .learn-picked,
+.learn-compare .learn-picked b { color: var(--busy); }
+.learn-compare .learn-both { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px; background: var(--ink); color: var(--ink-fg); font-size: 13px; font-weight: 600; }
+.learn-both svg { width: 15px; height: 15px; }
+/* Solo en el celular: ver el árbol a pantalla completa, o seguir en el nivel */
+.learn-ask .learn-see-tree { display: none; justify-self: start; color: var(--text); font-size: 13px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+/* El dominio: los últimos 10 intentos como luces (lima acierto, roja fallo) */
+.learn-progress { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; color: var(--muted); font-size: 13px; line-height: 1.35; }
+.learn-progress b { color: var(--text); font-weight: 600; }
+.learn-go-next { color: var(--text); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.learn-leds { display: flex; gap: 5px; }
+.learn-leds i { width: 11px; height: 11px; border-radius: 50%; background: var(--line); }
+.learn-leds i[data-r="y"] { background: var(--lime); box-shadow: inset 0 0 0 1px var(--dot-ring); }
+.learn-leds i[data-r="n"] { background: var(--busy); }
+/* Las respuestas: un botón grande por letra del nivel */
+.learn-answers { display: grid; grid-template-columns: repeat(var(--cols-d, 6), minmax(0, 1fr)); gap: 10px; }
+.learn-answers button { position: relative; display: grid; place-items: center; height: var(--h-d, 72px); border-radius: 18px; background: var(--surface); color: var(--text); font-size: 28px; font-weight: 600; transition: background-color 0.15s, box-shadow 0.15s; }
+.learn-answers button[data-state="ok"] { background: var(--lime); color: var(--graphite); }
+.learn-answers button[data-state="bad"] { background: color-mix(in oklab, var(--busy) 12%, var(--desk-raised)); color: var(--busy); box-shadow: inset 0 0 0 2px var(--busy); }
+/* Variantes cortas que solo usa el celular */
+.learn-note-short,
+.learn-tip-short { display: none; }
+.learn-answers small { position: absolute; top: 6px; right: 8px; font: 700 10px/1 var(--font-barlow), sans-serif; letter-spacing: 0.1em; text-transform: uppercase; }
+/* En el árbol, la letra que elegiste mal queda rodeada en rojo */
+.tree-mark { fill: none; stroke: var(--busy); stroke-width: 2.2; }
+
 /* ─────────────── Celular: cada página completa y el teclado morse ─────────────── */
 
 /* Solo existen en el celular */
@@ -782,8 +859,7 @@
 .translate-key-btn,
 .translate-clear,
 .translate-signal,
-.translate-phone,
-.learn-display { display: none; }
+.translate-phone { display: none; }
 .translate-wide { display: contents; }
 
 @media (max-width: 760px) {
@@ -895,26 +971,44 @@
   .translate-speed-pick select { height: 44px; padding: 0 32px 0 14px; border: 0; border-radius: 999px; appearance: none; -webkit-appearance: none; background: var(--surface); color: var(--text); font-size: 15px; font-weight: 600; }
   .translate-speed-pick svg { position: absolute; right: 11px; width: 16px; height: 16px; pointer-events: none; }
 
-  /* ── Aprender: el árbol entero con la pantalla del aparato encima */
-  .learn-main { display: none; }
-  .learn-chips { display: flex; gap: 8px; margin: 0 -20px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; }
-  .learn-chips::-webkit-scrollbar { display: none; }
-  .learn-chips button { flex: none; height: 40px; padding: 0 14px; border-radius: 999px; background: var(--desk-raised); color: var(--muted); font-size: 13px; font-weight: 600; white-space: nowrap; }
-  .learn-chips button[aria-pressed="true"] { background: var(--lime); color: var(--graphite); }
-  /* Sin la marca, la argolla ni el pulsador: se responde tocando el árbol o con
-     la tecla a pantalla completa */
-  .station-page[data-mode="learn"] .station-device .board { padding: 10px 10px 8px; }
-  .station-page[data-mode="learn"] .station-device .board > .board-hole,
-  .station-page[data-mode="learn"] .station-device .board > .board-hole + div,
-  .station-page[data-mode="learn"] .station-device .board > :last-child { display: none; }
-  /* El árbol se ajusta al alto de la pantalla, para que quepa entero sobre el botón */
-  .station-page[data-mode="learn"] .station-device .board > svg { width: min(100%, calc((100dvh - 382px - env(safe-area-inset-bottom)) * 1.098)); margin: 6px auto 0; }
-  .learn-display { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 10px; min-height: 58px; padding: 9px 12px; border-radius: 14px; background: rgb(0 0 0 / 0.3); color: var(--mist); }
-  .learn-display-main { display: flex; align-items: center; gap: 7px; font-size: 15px; font-weight: 600; line-height: 1.3; }
-  .learn-display-main svg { flex: none; width: 16px; height: 16px; }
-  .learn-display-score { color: var(--lime); font-size: 11px; font-weight: 600; line-height: 1.8; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; }
-  .learn-display-sub { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; color: rgb(244 244 246 / 0.7); font: 12.5px/1.35 var(--font-sans); }
-  .learn-display-sub b { color: var(--mist); font-weight: 600; }
+  /* ── Aprender: los pasos a la vista, los botones junto al pulgar y el árbol a pantalla completa */
+  .station-page[data-mode="learn"] .station-side { display: none; }
+  .station-page[data-mode="learn"] .station-controls { padding: 0; background: transparent; }
+  .learn-stage { gap: 10px; }
+  .learn-levels { flex-wrap: nowrap; margin: 0 -20px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; }
+  .learn-levels::-webkit-scrollbar { display: none; }
+  .learn-levels button { flex: none; min-height: 46px; padding: 6px 14px; background: var(--desk-raised); }
+  .learn-tabs { background: var(--desk-raised); }
+  .learn-tabs button { height: 38px; }
+  .learn-know,
+  .learn-practice { gap: 10px; }
+  .learn-intro { font-size: 13.5px; }
+  .learn-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .learn-card { min-height: 0; background: var(--desk-raised); }
+  .learn-actions { display: none; }
+  .learn-note,
+  .learn-ask .learn-tip-full,
+  .learn-sung-inline,
+  .learn-ask[data-state="right"] .learn-goal,
+  .learn-ask[data-state="wrong"] .learn-goal { display: none; }
+  .learn-note-short,
+  .learn-ask .learn-tip-short { display: inline; }
+  .learn-card { gap: 2px 10px; padding: 10px 46px 10px 12px; }
+  .learn-card > b { font-size: 28px; }
+  .learn-card-play { top: 10px; right: 10px; width: 30px; height: 30px; }
+  .learn-compare .learn-both { height: 28px; padding: 0 10px; font-size: 12px; }
+  /* Siempre el mismo alto, así los botones no saltan al responder */
+  .learn-ask { min-height: 150px; gap: 12px; padding: 14px; background: var(--desk-raised); }
+  .learn-sound { width: 52px; height: 52px; }
+  .learn-ask-title { font-size: 17px; }
+  .learn-ask-hint,
+  .learn-ask-tip { font-size: 13px; }
+  .learn-ask .learn-see-tree { display: inline; }
+  /* Los botones se reparten el alto que queda entre la pregunta y el botón de abajo */
+  .learn-answers { grid-template-columns: repeat(var(--cols-m, 3), minmax(0, 1fr)); gap: 8px; }
+  .learn-answers button { border-radius: 14px; }
+  .learn-answers button { height: clamp(36px, calc((100dvh - 518px - env(safe-area-inset-bottom)) / var(--rows-m, 2) - 8px), 76px); font-size: 26px; background: var(--desk-raised); box-shadow: inset 0 0 0 1px var(--line), 0 6px 14px -10px rgb(35 35 37 / 0.35); }
+  .learn-guide { margin-top: 14px; padding: 20px 18px; border: 0; border-radius: 24px; background: var(--desk-raised); }
   .learn-bar { display: flex; align-items: center; gap: 10px; }
   .learn-bar-main { flex: 1; height: 52px; font-size: 16px; }
 
@@ -947,7 +1041,7 @@
 
 @media (max-width: 370px) {
   /* La fila de niveles llega al borde: su margen es el de la página (14 px aquí) */
-  .learn-chips { margin: 0 -14px; padding: 0 14px; }
+  .learn-levels { margin: 0 -14px; padding: 0 14px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
