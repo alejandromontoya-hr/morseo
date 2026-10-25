@@ -8,7 +8,8 @@ import { ROUTES } from "@/lib/i18n/routes";
 // que este 404 va aparte, con la estación completa y en los dos idiomas.
 export const metadata: Metadata = {
   ...siteMetadata,
-  title: "404 · Morseo",
+  // Como en las demás páginas: primero el tema y la marca al final.
+  title: "Page not found · Página no encontrada | Morseo",
   robots: { index: false },
 };
 export const viewport = siteViewport;
