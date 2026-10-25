@@ -49,13 +49,20 @@ su dirección oficial.
 
 ## Buscadores e IA
 
-- `app/sitemap.ts` → `/sitemap.xml`: las 6 páginas, cada una con su par en el
-  otro idioma.
+La dirección oficial es `https://morseo.site`, sin www (`SITE_URL` en
+`lib/i18n/routes.ts`); www.morseo.site lleva ahí.
+
+- `app/sitemap.ts` → `/sitemap.xml`: las 6 páginas con la fecha de su último
+  cambio (`PAGE_UPDATED` en `lib/seo.ts`).
 - `app/robots.ts` → `/robots.txt`: abierto a todos (Google, Bing, ChatGPT,
-  Claude, Perplexity…) menos `/api/`.
+  Claude, Perplexity…) menos `/api/`, con los buscadores de IA por nombre.
 - `app/llms.txt/route.ts` → `/llms.txt`: resumen del sitio para asistentes de IA.
+- `app/llms-full.txt/route.ts` → `/llms-full.txt`: todas las guías y preguntas
+  frecuentes de los dos idiomas en un solo archivo.
 - `lib/seo.ts`: título, descripción, dirección oficial (canonical), idiomas
   (hreflang) y la ficha JSON-LD (WebApplication + preguntas frecuentes).
+- `npm run indexnow`: le avisa a Bing de las 6 páginas. Se corre a mano cuando
+  Vercel termina de publicar un cambio.
 - `opengraph-image.tsx` en cada página: la tarjeta al compartir el enlace.
 - `lib/content/*`: los textos que leen los buscadores, en inglés y español.
 

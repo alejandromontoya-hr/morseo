@@ -9,10 +9,22 @@ import { content } from "@/lib/content";
 import { LOCALES, type Locale } from "@/lib/i18n/config";
 import { ROUTES, SITE_URL, type PageKey } from "@/lib/i18n/routes";
 
-/** Dirección completa de una ruta: "/" → https://www.morseo.site/ */
+/** Dirección completa de una ruta: "/" → https://morseo.site/ */
 export function absoluteUrl(path: string): string {
   return SITE_URL + path;
 }
+
+/**
+ * Fecha del último cambio de contenido de cada página (AAAA-MM-DD), la misma
+ * en los dos idiomas. La leen el sitemap y la ficha JSON-LD (dateModified).
+ * Al cambiar una página se actualiza aquí; si la fecha cambiara en cada
+ * despliegue, Google dejaría de creerle.
+ */
+export const PAGE_UPDATED: Record<PageKey, string> = {
+  translate: "2026-10-06",
+  learn: "2026-10-07",
+  radio: "2026-10-06",
+};
 
 /** Las dos versiones de una página; sin idioma reconocido, el inglés. */
 export function languageAlternates(page: PageKey) {
@@ -93,6 +105,7 @@ export function pageJsonLd(locale: Locale, page: PageKey, faq: { q: string; a: s
         name: c.meta[page].title,
         description: c.meta[page].description,
         inLanguage: locale,
+        dateModified: PAGE_UPDATED[page],
         isPartOf: { "@id": WEBSITE_ID },
         about: { "@id": `${home}#app` },
         mainEntity: faq.map(({ q, a }) => ({

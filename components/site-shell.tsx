@@ -62,6 +62,10 @@ export function SiteShell({ locale, children }: { locale: Locale; children: Reac
       suppressHydrationWarning
       className={`${inter.variable} ${barlow.variable} ${doto.variable}`}
     >
+      <head>
+        {/* Resumen del sitio para asistentes de IA */}
+        <link rel="llms-txt" href="/llms.txt" />
+      </head>
       <body>
         <ThemeProvider
           attribute="class"

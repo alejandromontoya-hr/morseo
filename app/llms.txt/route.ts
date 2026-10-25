@@ -48,6 +48,10 @@ ${pages.join("\n\n")}
 ## International Morse code
 
 ${alphabet}
+
+## Full text
+
+- [llms-full.txt](${absoluteUrl("/llms-full.txt")}): Every guide and FAQ on the site in English and Spanish, in a single file.
 `;
 
   return new Response(body, {

@@ -4,7 +4,8 @@
 
 import type { Locale } from "@/lib/i18n/config";
 
-export const SITE_URL = "https://www.morseo.site";
+// Sin www: es la dirección principal en Vercel (www.morseo.site lleva aquí).
+export const SITE_URL = "https://morseo.site";
 
 export type PageKey = "translate" | "learn" | "radio";
 
