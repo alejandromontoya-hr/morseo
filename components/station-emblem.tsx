@@ -104,7 +104,7 @@ export function StationEmblem({
     };
 
     const onEnter = (e: PointerEvent) => {
-      // Con el dedo no hay «pasar por encima»: el toque lo asusta (onDown).
+      // Con el dedo no hay "pasar por encima": el toque lo asusta (onDown).
       if (e.pointerType !== "mouse") return;
       face.trigger("wink", performance.now(), e.clientX < center().x ? -1 : 1);
     };

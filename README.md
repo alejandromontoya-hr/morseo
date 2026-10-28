@@ -16,8 +16,8 @@ a la misma página en el otro idioma y se recuerda para la próxima visita.
 
 - **Traducir** (`/` · `/es`) — un solo mensaje que se arma escribiendo o con la tecla
   (botón en pantalla o barra espaciadora). Al lado del editor está el panel
-  para teclear, con un interruptor **Tecla | Árbol morse**: «Tecla» muestra
-  solo la tecla redonda y «Árbol morse» la cambia, en el mismo lugar, por el
+  para teclear, con un interruptor **Tecla | Árbol morse**: "Tecla" muestra
+  solo la tecla redonda y "Árbol morse" la cambia, en el mismo lugar, por el
   aparato completo. Se puede copiar o reproducir el mensaje a tres velocidades.
 - **Aprender** (`/learn` · `/es/aprender`) — práctica de escucha por niveles (orden de
   aprendizaje tipo Koch). Suena una letra y se responde tocándola en el árbol,
@@ -29,14 +29,14 @@ a la misma página en el otro idioma y se recuerda para la próxima visita.
   el árbol. Tiene el mismo interruptor **Tecla | Árbol morse** y otro para
   **Cómo transmitir**: en **Directo** (el que viene por defecto) cada letra
   tecleada sale al canal apenas la terminas y los demás la oyen enseguida; en
-  la lista se ve una sola entrada que crece («S» → «SO» → «SOS») y se cierra
+  la lista se ve una sola entrada que crece ("S" → "SO" → "SOS") y se cierra
   tras 3 s sin teclear. En **Con botón** se arma el mensaje y se envía con
   Transmitir. Lo escrito con el teclado se envía con Enter en los dos modos.
   Si el navegador todavía no deja sonar
   audio (entrada directa, sin haber tocado la página), los mensajes igual
   llegan a la lista y aparece **Toca para oír lo que llega**.
 
-Cambiar entre «Tecla» y «Árbol morse» conserva el mensaje y cancela la
+Cambiar entre "Tecla" y "Árbol morse" conserva el mensaje y cancela la
 pulsación en curso. La barra espaciadora es la tecla incluso después de hacer
 clic en un botón; solo si llegas a un botón con Tab, la barra lo activa.
 

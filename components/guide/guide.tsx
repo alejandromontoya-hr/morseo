@@ -73,7 +73,7 @@ export function MorseTable({ chars, label }: { chars: string[]; label: string })
   );
 }
 
-/** Ficha estructurada para buscadores. Escapa «<» para que el texto no cierre la etiqueta. */
+/** Ficha estructurada para buscadores. Escapa "<" para que el texto no cierre la etiqueta. */
 export function JsonLd({ data }: { data: object }) {
   return (
     <script

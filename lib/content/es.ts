@@ -53,7 +53,7 @@ const es: Content = {
   translate: {
     howTitle: "Cómo usar el traductor de código morse",
     how: [
-      "Escribe tu texto en «Tu mensaje». El código morse aparece justo debajo en puntos y rayas, listo para copiar y pegar.",
+      'Escribe tu texto en "Tu mensaje". El código morse aparece justo debajo en puntos y rayas, listo para copiar y pegar.',
       "Toca Reproducir para escucharlo como un tono de 600 Hz: lento (8), medio (12) o rápido (18) palabras por minuto.",
       "Para pasar de código morse a texto, tecléalo: un toque corto es un punto, uno largo es una raya y una pausa cierra la letra. La barra espaciadora también sirve de tecla.",
       "Pasa al árbol morse para ver cómo cada letra viaja desde la antena, punto a punto y raya a raya.",
@@ -77,7 +77,7 @@ const es: Content = {
       },
       {
         q: "¿Cómo traduzco código morse a texto?",
-        a: "Tecléalo en Morseo: un toque por cada punto, mantén por cada raya y haz una pausa para cerrar la letra. El texto aparece en «Tu mensaje» a medida que avanzas, y el árbol morse muestra en qué letra vas.",
+        a: 'Tecléalo en Morseo: un toque por cada punto, mantén por cada raya y haz una pausa para cerrar la letra. El texto aparece en "Tu mensaje" a medida que avanzas, y el árbol morse muestra en qué letra vas.',
       },
       {
         q: "¿Qué es el árbol morse?",
@@ -141,7 +141,7 @@ const es: Content = {
         a: "No. Morseo envía tu código morse por internet, de navegador a navegador. Nada sale por frecuencias de radio, así que no necesitas equipo ni licencia.",
       },
       {
-        q: "¿Qué significa «Canal ocupado»?",
+        q: '¿Qué significa "Canal ocupado"?',
         a: "Que otra persona está transmitiendo. Solo transmite una a la vez: espera a que termine y el canal se libera.",
       },
     ],

@@ -140,7 +140,7 @@ export default function TranslateApp({ about }: { about?: ReactNode }) {
     setPadOpen(true);
   }
 
-  // «Teclado»: el foco en el mensaje abre el teclado del celular (y cierra este).
+  // "Teclado": el foco en el mensaje abre el teclado del celular (y cierra este).
   function backToKeyboard() {
     keyer.reset();
     messageRef.current?.focus();

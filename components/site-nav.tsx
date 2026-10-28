@@ -28,7 +28,7 @@ export function SiteNav() {
   ] as const;
   const current = pageOf(pathname);
   const active = (page: string) => current === page;
-  // Celular: idioma, tema y enlaces viven en una hoja detrás de «⋯».
+  // Celular: idioma, tema y enlaces viven en una hoja detrás de "⋯".
   const [settingsOpen, setSettingsOpen] = useState(false);
   // Su alto real (cambia con el tamaño de letra del celular): el panel de abajo
   // lo usa para que el pulsador nunca quede encima de la cápsula.

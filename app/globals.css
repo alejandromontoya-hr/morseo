@@ -53,7 +53,7 @@
   --dash: var(--graphite);
   /* Borde fino para que el punto lima no se pierda sobre blanco */
   --dot-ring: rgb(35 35 37 / 0.38);
-  /* Canal ocupado: el único rojo de la app, como el LED de «al aire» */
+  /* Canal ocupado: el único rojo de la app, como el LED de "al aire" */
   --busy: #e5484d;
 }
 
@@ -263,7 +263,7 @@
 
 /* ───────────────────────────── Pulsador ───────────────────────────── */
 
-/* El botón redondo que se mantiene oprimido: en la vista «Tecla» sobre la
+/* El botón redondo que se mantiene oprimido: en la vista "Tecla" sobre la
    tarjeta y en el aparato sobre la placa. Al oprimirlo se enciende lima. */
 .pulsador {
   --p-bg: var(--surface);
@@ -863,7 +863,7 @@
 .translate-wide { display: contents; }
 
 @media (max-width: 760px) {
-  /* Arriba solo el logo y «⋯»: idioma, tema y enlaces van en Ajustes */
+  /* Arriba solo el logo y "⋯": idioma, tema y enlaces van en Ajustes */
   .station-preferences { display: none; }
   .station-more { display: grid; place-items: center; flex: none; width: 44px; height: 44px; margin-left: auto; border-radius: 50%; background: var(--desk-raised); color: var(--text); }
   .station-more svg { width: 20px; height: 20px; }
@@ -890,7 +890,7 @@
   .station-mobile-top > * { min-width: 0; }
   .station-workspace { gap: 12px; }
   .station-controls { padding: 16px; }
-  /* Traducir y Al aire: el aparato no va al lado; «Árbol» lo abre a pantalla completa */
+  /* Traducir y Al aire: el aparato no va al lado; "Árbol" lo abre a pantalla completa */
   .station-page[data-hand] .station-side { display: none; }
 
   /* La fila fija encima de la cápsula; lo que pasa por debajo se desvanece */

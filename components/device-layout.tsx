@@ -16,7 +16,7 @@ export type DeviceView = "key" | "tree";
 /** Celular: el teclado morse, que sale donde sale el teclado del celular. */
 export type PadProps = {
   open: boolean;
-  /** «Teclado»: vuelve al teclado del celular. */
+  /** "Teclado": vuelve al teclado del celular. */
   onKeyboard: () => void;
   /** El pulsador (`PadKey`). */
   keyEl: ReactNode;
@@ -24,7 +24,7 @@ export type PadProps = {
   readout?: ReactNode;
   /** Lo que dice el globo cuando no suena nada. */
   idle: string;
-  /** A la derecha del pulsador: borrar, o la luz de «al aire». */
+  /** A la derecha del pulsador: borrar, o la luz de "al aire". */
   side?: ReactNode;
 };
 
@@ -38,14 +38,14 @@ export type TelegraphProps = {
 
 /**
  * Página de estación: los controles a la izquierda y, a la derecha, lo que se
- * teclea a mano. Con `hand` ese lado tiene un interruptor fijo arriba: «Tecla»
- * muestra solo la tecla redonda y «Árbol morse» la cambia, en el mismo lugar,
+ * teclea a mano. Con `hand` ese lado tiene un interruptor fijo arriba: "Tecla"
+ * muestra solo la tecla redonda y "Árbol morse" la cambia, en el mismo lugar,
  * por el aparato completo. Sin `hand` (Aprender) el aparato está siempre.
  * `about` es la guía de debajo (cómo se usa, alfabeto, preguntas frecuentes).
  *
  * En el celular cada página se ve completa y el pulsador funciona como un
  * teclado: `pad` lo abre donde sale el teclado del celular, y mientras está
- * abierto la cápsula de páginas se esconde. Su botón «Árbol» abre `telegraph`,
+ * abierto la cápsula de páginas se esconde. Su botón "Árbol" abre `telegraph`,
  * el aparato a pantalla completa. `mobileBar` es una fila fija encima de la
  * cápsula (escribir en Al aire, el botón del ejercicio en Aprender).
  */

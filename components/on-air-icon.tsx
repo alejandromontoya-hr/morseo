@@ -1,5 +1,5 @@
 /**
- * La torre de «Al aire» (la misma del menú) dentro de un disco lima. Mientras
+ * La torre de "Al aire" (la misma del menú) dentro de un disco lima. Mientras
  * escuchas el canal, las ondas salen de la antena: primero las cercanas y luego
  * las lejanas. Sintonizando laten más despacio; sin conexión, la torre se apaga.
  */

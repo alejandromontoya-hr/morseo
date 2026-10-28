@@ -44,7 +44,7 @@ export function keyHandlers(keyer: Keyer, disabled: boolean) {
 }
 
 /**
- * El pulsador del aparato: el mismo botón redondo de la vista «Tecla», sobre
+ * El pulsador del aparato: el mismo botón redondo de la vista "Tecla", sobre
  * la placa. Debajo aparece en vivo el morse que vas armando con la letra que
  * resultó (o un aviso), y más abajo la leyenda y el LED de transmisión.
  */
@@ -71,7 +71,7 @@ export function KeyButton({
   code?: string;
   /** La letra que resultó, cuando ya terminó. */
   letter?: string;
-  /** Aviso que reemplaza la lectura (p. ej. «no es letra»). */
+  /** Aviso que reemplaza la lectura (p. ej. "no es letra"). */
   notice?: string;
   ariaLabel: string;
   label: string;

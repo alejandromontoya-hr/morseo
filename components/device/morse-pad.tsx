@@ -10,7 +10,7 @@ import { StationEmblem } from "@/components/station-emblem";
  * El teclado morse del celular: sale donde sale el teclado del celular y ocupa
  * su lugar. Arriba, el muñeco con la letra que vas armando y el botón para
  * volver al teclado; al centro, el pulsador grande, con el árbol a la
- * izquierda y, a la derecha, lo de cada página (borrar, o la luz de «al aire»).
+ * izquierda y, a la derecha, lo de cada página (borrar, o la luz de "al aire").
  */
 export function MorsePad({
   sectionRef,

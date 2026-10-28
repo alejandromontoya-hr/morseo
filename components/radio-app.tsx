@@ -54,10 +54,10 @@ const TX_MODE_KEY = "morseo:txmode";
 // letra abre una entrada nueva en la lista.
 const TX_IDLE_MS = 3000;
 const LED_DOT = { "--led": "var(--dot)" } as CSSProperties;
-// En los avisos de canal ocupado, un nombre más largo que esto se corta con «…».
+// En los avisos de canal ocupado, un nombre más largo que esto se corta con "…".
 const NAME_MAX = 16;
 
-/** Corta un nombre largo con «…», sin partir emojis ni letras compuestas. */
+/** Corta un nombre largo con "…", sin partir emojis ni letras compuestas. */
 function shortName(name: string): string {
   const chars = Array.from(name);
   return chars.length > NAME_MAX ? chars.slice(0, NAME_MAX - 1).join("").trimEnd() + "…" : name;
@@ -65,7 +65,7 @@ function shortName(name: string): string {
 
 /**
  * Pone el mensaje que llega. Una letra en directo se agrega a la entrada de
- * su transmisión («S» → «SO» → «SOS»); lo demás entra como nuevo y, con
+ * su transmisión ("S" → "SO" → "SOS"); lo demás entra como nuevo y, con
  * FEED_MAX, saca al anterior.
  */
 function mergeMsg(list: Msg[], msg: Msg): Msg[] {
@@ -122,7 +122,7 @@ export default function RadioApp({ about }: { about?: ReactNode }) {
   const [text, setText] = useState("");
   const [txMode, setTxMode] = useState<TxMode>("direct");
   // En el celular no se elige: lo escrito sale con Transmitir y lo tecleado,
-  // letra a letra (como «Directo»).
+  // letra a letra (como "Directo").
   const isMobile = useIsMobile();
   const mode: TxMode = isMobile ? "direct" : txMode;
   // Celular: la hoja para cambiar de canal o de nombre, el teclado morse (en
@@ -329,7 +329,7 @@ export default function RadioApp({ about }: { about?: ReactNode }) {
       }
       return res.ok;
     } catch {
-      /* sin conexión: el aviso de «sin conexión» ya lo indica */
+      /* sin conexión: el aviso de "sin conexión" ya lo indica */
       return false;
     }
   }
@@ -532,7 +532,7 @@ export default function RadioApp({ about }: { about?: ReactNode }) {
     setPadOpen(true);
   }
 
-  // «Teclado»: el foco en la fila de escribir abre el teclado del celular (y cierra este).
+  // "Teclado": el foco en la fila de escribir abre el teclado del celular (y cierra este).
   function backToKeyboard() {
     keyer.reset();
     barInputRef.current?.focus();

@@ -101,7 +101,7 @@ const TALK_WORD_MS = 1800;
 
 type Talk = {
   word: string;
-  /** El morse con puntos y rayas legibles: «••• −−− •••». */
+  /** El morse con puntos y rayas legibles: "••• −−− •••". */
   text: string;
   /** Cada símbolo: cuándo suena, cuándo calla y hasta dónde va escrito. */
   marks: { at: number; end: number; upto: number }[];
@@ -252,7 +252,7 @@ export function createFace(random: () => number = Math.random, words: string[] =
     if (mood?.kind === "surprise") {
       p.eyeR = lerp(p.eyeR, 8.6, w);
       p.eyeY = lerp(p.eyeY, -4, w);
-      // La raya se encoge en una «o».
+      // La raya se encoge en una "o".
       p.mouthW = lerp(p.mouthW, 0.01, w);
       p.mouthH = lerp(p.mouthH, 13, w);
       p.mouthY = lerp(p.mouthY, 9, w);
@@ -260,7 +260,7 @@ export function createFace(random: () => number = Math.random, words: string[] =
       p.hop -= 4 * Math.sin(Math.PI * clamp01((now - mood.start) / 260));
     } else if (mood?.kind === "think") {
       p.openL = p.openR = lerp(1, 0.72, w);
-      // La boca se encoge en un «mmm»: rayita corta, torcida y a un lado.
+      // La boca se encoge en un "mmm": rayita corta, torcida y a un lado.
       p.mouthW = lerp(p.mouthW, 11, w);
       p.mouthH = lerp(p.mouthH, 6, w);
       p.mouthX = lerp(0, mood.side * 7, w);
@@ -278,7 +278,7 @@ export function createFace(random: () => number = Math.random, words: string[] =
     }
 
     // Atento al aparato abre un poco los ojos; con cada tono, la raya se vuelve
-    // una «o», como si cantara el morse.
+    // una "o", como si cantara el morse.
     p.eyeR = lerp(p.eyeR, 6.6, attention);
     p.mouthW = lerp(p.mouthW, 0.01, voice);
     p.mouthH = lerp(p.mouthH, 11, voice);

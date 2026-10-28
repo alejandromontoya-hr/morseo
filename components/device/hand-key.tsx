@@ -28,7 +28,7 @@ export function HandKey({
 }: {
   keyer: Keyer;
   disabled?: boolean;
-  /** Aviso que reemplaza la lectura (p. ej. «no es letra» o «enciende el radio»). */
+  /** Aviso que reemplaza la lectura (p. ej. "no es letra" o "enciende el radio"). */
   notice?: string;
   ariaLabel: string;
   title: string;

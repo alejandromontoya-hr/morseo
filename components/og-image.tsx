@@ -7,7 +7,7 @@ import type { PageKey } from "@/lib/i18n/routes";
 import { MORSE } from "@/lib/morse";
 
 // La tarjeta que sale al compartir un enlace (WhatsApp, LinkedIn, X): el logo,
-// el título grande de la página y «MORSEO» escrito en puntos y rayas con los
+// el título grande de la página y "MORSEO" escrito en puntos y rayas con los
 // colores del árbol. Mismos colores del modo día de la app.
 const MIST = "#f4f4f6";
 const GRAPHITE = "#232325";

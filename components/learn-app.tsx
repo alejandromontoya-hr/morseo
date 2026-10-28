@@ -49,12 +49,12 @@ function loadSaved(): Saved | null {
 const sum = (r: number[]) => r.reduce((a, b) => a + b, 0);
 const isMastered = (r: number[]) => r.length >= WINDOW && sum(r) >= TO_MASTER;
 
-/** El truco sin el ritmo que lo acompaña: de «NO-ta» — dah-dit. queda «NO-ta». */
+/** El truco sin el ritmo que lo acompaña: de "NO-ta" — dah-dit. queda "NO-ta". */
 const phrase = (tip: string) => tip.split(" — ")[0];
 
 /**
- * Aprender por niveles, en dos pasos. «Conoce»: las letras nuevas del nivel,
- * cada una con su sonido, su ritmo cantado y su camino en el árbol. «Practica»:
+ * Aprender por niveles, en dos pasos. "Conoce": las letras nuevas del nivel,
+ * cada una con su sonido, su ritmo cantado y su camino en el árbol. "Practica":
  * suena una letra y se elige entre los botones de las letras del nivel (o con
  * el teclado). Al fallar se marcan las dos y se pueden oír seguidas. Con 9 de
  * los últimos 10 el nivel queda dominado y se invita al siguiente.

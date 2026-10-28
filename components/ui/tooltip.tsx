@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type ReactElement, type ReactNode } from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
-// Con el dedo no hay «mouse encima»: el globito sale al sostener el dedo.
+// Con el dedo no hay "mouse encima": el globito sale al sostener el dedo.
 const HOLD_MS = 450;
 // Al soltar, sigue a la vista un momento para alcanzar a leerlo.
 const LINGER_MS = 1500;
@@ -54,7 +54,7 @@ export function Tooltip({
   children,
 }: {
   label?: ReactNode;
-  /** Lo que dice cuando el botón está apagado, p. ej. «Escribe un mensaje primero». */
+  /** Lo que dice cuando el botón está apagado, p. ej. "Escribe un mensaje primero". */
   disabledLabel?: ReactNode;
   side?: "top" | "bottom";
   touch?: boolean;
@@ -131,7 +131,7 @@ export function Tooltip({
             })
           );
         }}
-        // Al levantar el dedo el navegador avisa que el puntero «salió»: con el
+        // Al levantar el dedo el navegador avisa que el puntero "salió": con el
         // dedo eso no cierra el globito (lo cierra la espera de LINGER_MS).
         onPointerLeave={(e) => {
           if (e.pointerType === "touch") e.preventDefault();
