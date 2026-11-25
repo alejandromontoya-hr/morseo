@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Barlow_Semi_Condensed, Doto, Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "@/app/globals.css";
 
 import { LINKEDIN_URL } from "@/components/github-link";
@@ -84,6 +85,8 @@ export function SiteShell({ locale, children }: { locale: Locale; children: Reac
         </ThemeProvider>
         {/* Visitas por página, país, equipo y de dónde llegan: solo se ven en el panel de Vercel */}
         <Analytics />
+        {/* Velocidad de carga con visitas reales (Vercel Speed Insights): sin cookies ni datos personales */}
+        <SpeedInsights />
       </body>
     </html>
   );
